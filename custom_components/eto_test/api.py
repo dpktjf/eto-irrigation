@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import socket
 from typing import Any
 
 import aiohttp
 import async_timeout
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ETOApiClientError(Exception):
@@ -51,6 +54,7 @@ class ETOApiClient:
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""
+        _LOGGER.debug(f"[async_get_data: {self._username}/{self._password}")
         return await self._api_wrapper(
             method="get",
             url="https://jsonplaceholder.typicode.com/posts/1",

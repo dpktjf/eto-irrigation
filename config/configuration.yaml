@@ -5,6 +5,13 @@ default_config:
 homeassistant:
   debug: true
 
+eto_test:
+  - name: side
+    scan_interval: 10
+  - name: back
+    scan_interval: 15
+
+
 # https://www.home-assistant.io/integrations/logger/
 logger:
   default: info
