@@ -15,7 +15,6 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.const import (
     CONF_NAME,
-    CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
     Platform,
@@ -25,7 +24,18 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import ETOApiClient
-from .const import DEFAULT_NAME, DOMAIN
+from .const import (
+    CONF_ALBEDO,
+    CONF_HUMIDITY_MAX,
+    CONF_HUMIDITY_MIN,
+    CONF_RAIN,
+    CONF_SOLAR_RAD,
+    CONF_TEMP_MAX,
+    CONF_TEMP_MIN,
+    CONF_WIND,
+    DEFAULT_NAME,
+    DOMAIN,
+)
 from .coordinator import ETODataUpdateCoordinator
 from .data import ETOData
 
@@ -40,6 +50,8 @@ PLATFORMS: list[Platform] = [
     # Platform.SWITCH,
 ]
 
+# https://homeassistantapi.readthedocs.io/en/latest/api.html
+
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
@@ -47,7 +59,8 @@ DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 ETO_SCHEMA = vol.Schema(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,  # type: ignore
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period,  # type: ignore
+        vol.Optional(CONF_TEMP_MIN, default=CONF_TEMP_MIN): cv.string,  # type: ignore
+        vol.Optional(CONF_TEMP_MAX, default=CONF_TEMP_MAX): cv.string,  # type: ignore
     }
 )
 
@@ -56,7 +69,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup_skip(hass: HomeAssistant, config: ConfigType) -> bool:
     """Will setup the ETO platform."""
     hass.data[DOMAIN] = {}
     for entry in config[DOMAIN]:
@@ -84,9 +97,20 @@ async def async_setup_entry(
     )
     entry.runtime_data = ETOData(
         client=ETOApiClient(
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
+            name=entry.data[CONF_NAME],
+            latitude=hass.config.latitude,
+            longitude=hass.config.longitude,
+            elevation=hass.config.elevation,
+            temp_min=entry.data[CONF_TEMP_MIN],
+            temp_max=entry.data[CONF_TEMP_MAX],
+            humidity_min=entry.data[CONF_HUMIDITY_MIN],
+            humidity_max=entry.data[CONF_HUMIDITY_MAX],
+            wind=entry.data[CONF_WIND],
+            rain=entry.data[CONF_RAIN],
+            solar_rad=entry.data[CONF_SOLAR_RAD],
+            albedo=entry.data[CONF_ALBEDO],
             session=async_get_clientsession(hass),
+            states=hass.states,
         ),
         integration=async_get_loaded_integration(hass, entry.domain),
         coordinator=coordinator,

@@ -2,9 +2,30 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import voluptuous as vol
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.components.input_number import DOMAIN as INPUT_NUMBER_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.sensor.const import (
+    DOMAIN as SENSOR_DOMAIN,
+)
+from homeassistant.components.sensor.const import (
+    SensorDeviceClass,
+)
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+    OptionsFlowWithConfigEntry,
+)
+
+# https://github.com/home-assistant/core/blob/master/homeassistant/const.py
+from homeassistant.const import CONF_NAME
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
@@ -14,7 +35,104 @@ from .api import (
     ETOApiClientCommunicationError,
     ETOApiClientError,
 )
-from .const import DOMAIN, LOGGER
+from .const import (
+    CONF_ALBEDO,
+    CONF_HUMIDITY_MAX,
+    CONF_HUMIDITY_MIN,
+    CONF_RAIN,
+    CONF_SOLAR_RAD,
+    CONF_TEMP_MAX,
+    CONF_TEMP_MIN,
+    CONF_WIND,
+    DOMAIN,
+    LOGGER,
+)
+
+
+@callback
+def configured_instances(hass: HomeAssistant) -> set[str]:
+    """Return a set of configured instances."""
+    entries = []
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        entries.append(entry.data.get(CONF_NAME))
+    return set(entries)
+
+
+def _get_data_schema(
+    hass: HomeAssistant, config_entry: ConfigEntry | None = None
+) -> vol.Schema:
+    """Get a schema with default values."""
+    # If tracking home or no config entry is passed in, default value come from
+    # Home location
+    entity_selector = selector.EntitySelector(
+        selector.EntitySelectorConfig(
+            domain=[SENSOR_DOMAIN],
+            multiple=False,
+        ),
+    )
+    if config_entry is None:
+        # sections: https://developers.home-assistant.io/docs/data_entry_flow_index/
+        return vol.Schema(
+            {
+                vol.Required(
+                    CONF_NAME,
+                    default=({}).get(CONF_NAME, vol.UNDEFINED),
+                ): selector.TextSelector(
+                    selector.TextSelectorConfig(
+                        type=selector.TextSelectorType.TEXT,
+                    ),
+                ),
+                vol.Required(CONF_TEMP_MIN): entity_selector,
+                vol.Required(CONF_TEMP_MAX): entity_selector,
+                vol.Required(CONF_HUMIDITY_MIN): entity_selector,
+                vol.Required(CONF_HUMIDITY_MAX): entity_selector,
+                vol.Required(CONF_WIND): entity_selector,
+                vol.Required(CONF_RAIN): entity_selector,
+                vol.Required(CONF_SOLAR_RAD): entity_selector,
+                vol.Required(CONF_ALBEDO): entity_selector,
+            }
+        )
+    # Not tracking home, default values come from config entry
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_NAME,
+                default=config_entry.data.get(CONF_NAME),  # type: ignore
+            ): cv.string,
+            vol.Required(
+                CONF_TEMP_MIN,
+                default=config_entry.data.get(CONF_TEMP_MIN),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_TEMP_MAX,
+                default=config_entry.data.get(CONF_TEMP_MIN),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_HUMIDITY_MIN,
+                default=config_entry.data.get(CONF_HUMIDITY_MIN),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_HUMIDITY_MAX,
+                default=config_entry.data.get(CONF_HUMIDITY_MAX),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_WIND,
+                default=config_entry.data.get(CONF_WIND),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_RAIN,
+                default=config_entry.data.get(CONF_RAIN),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_SOLAR_RAD,
+                default=config_entry.data.get(CONF_SOLAR_RAD),  # type: ignore
+            ): entity_selector,
+            vol.Required(
+                CONF_ALBEDO,
+                default=config_entry.data.get(CONF_ALBEDO),  # type: ignore
+            ): entity_selector,
+        }
+    )
 
 
 class ETOFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -29,53 +147,51 @@ class ETOFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
-            try:
-                await self._test_credentials(
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except ETOApiClientAuthenticationError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
-            except ETOApiClientCommunicationError as exception:
-                LOGGER.error(exception)
-                _errors["base"] = "connection"
-            except ETOApiClientError as exception:
-                LOGGER.exception(exception)
-                _errors["base"] = "unknown"
-            else:
+            if user_input.get(CONF_NAME) not in configured_instances(self.hass):
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
-                    data=user_input,
+                    title=user_input[CONF_NAME], data=user_input
                 )
+            _errors[CONF_NAME] = "already_configured"
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_USERNAME,
-                        default=(user_input or {}).get(CONF_USERNAME, vol.UNDEFINED),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT,
-                        ),
-                    ),
-                    vol.Required(CONF_PASSWORD): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.PASSWORD,
-                        ),
-                    ),
-                },
-            ),
+            data_schema=_get_data_schema(self.hass),
             errors=_errors,
         )
 
-    async def _test_credentials(self, username: str, password: str) -> None:
-        """Validate credentials."""
-        client = ETOApiClient(
-            username=username,
-            password=password,
-            session=async_create_clientsession(self.hass),
+    async def async_step_onboarding(
+        self, data: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle a flow initialized by onboarding."""
+        return self.async_create_entry(title="Home", data={})
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: ConfigEntry,
+    ) -> OptionsFlow:
+        """Get the options flow for ETO."""
+        return ETOOptionsFlowHandler(config_entry)
+
+
+class ETOOptionsFlowHandler(OptionsFlowWithConfigEntry):
+    """Options flow for ETO component."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure options for ETO."""
+
+        if user_input is not None:
+            # Update config entry with data from user input
+            self.hass.config_entries.async_update_entry(
+                self._config_entry, data=user_input
+            )
+            return self.async_create_entry(
+                title=self._config_entry.title, data=user_input
+            )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=_get_data_schema(self.hass, config_entry=self._config_entry),
         )
-        await client.async_get_data()

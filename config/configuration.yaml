@@ -5,11 +5,15 @@ default_config:
 homeassistant:
   debug: true
 
+template: !include templates.yaml
+
 eto_test:
   - name: side
-    scan_interval: 10
+    temp_min: 'sensor.pi07_temp_drive_min'
+    temp_max: 'sensor.pi07_temp_drive_max'
   - name: back
-    scan_interval: 15
+    temp_min: 'sensor.pi07_temp_drive_min'
+    temp_max: 'sensor.pi07_temp_drive_max'
 
 
 # https://www.home-assistant.io/integrations/logger/
