@@ -95,6 +95,7 @@ async def async_setup_entry(
     coordinator = ETODataUpdateCoordinator(
         hass=hass,
     )
+
     entry.runtime_data = ETOData(
         client=ETOApiClient(
             name=entry.data[CONF_NAME],

@@ -101,6 +101,12 @@ class ETOApiClientAuthenticationError(
     """Exception to indicate an authentication error."""
 
 
+class ETOApiClientCalculationError(
+    ETOApiClientError,
+):
+    """Exception to indicate a calculation error."""
+
+
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """Verify that the response is valid."""
     if response.status in (401, 403):
@@ -151,11 +157,11 @@ class ETOApiClient:
     async def _get(self, ent) -> float:
         st = self._states.get(ent)
         if st is not None:
-            try:
-                return float(st.state)
-            except ValueError:
-                return -1
-        return 0
+            return float(st.state)
+        msg = "States not yet available - probably starting up???"
+        raise ETOApiClientCalculationError(
+            msg,
+        )
 
     async def collect_calculation_data(self) -> None:
         """
@@ -164,18 +170,35 @@ class ETOApiClient:
         Convert into the correct units for calculation.
         """
         # https://developers.home-assistant.io/docs/core/entity/sensor
-        self._calc_data[CONF_TEMP_MIN] = await self._get(self._temp_min)
-        self._calc_data[CONF_TEMP_MAX] = await self._get(self._temp_max)
-        self._calc_data[CONF_HUMIDITY_MIN] = await self._get(self._humidity_min) / 100
-        self._calc_data[CONF_HUMIDITY_MAX] = await self._get(self._humidity_max) / 100
-        self._calc_data[CONF_WIND] = await self._get(self._wind)
-        self._calc_data[CONF_RAIN] = await self._get(self._rain)
-        self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
-        self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
-        self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
+        try:
+            self._calc_data[CONF_TEMP_MIN] = await self._get(self._temp_min)
+            self._calc_data[CONF_TEMP_MAX] = await self._get(self._temp_max)
+            self._calc_data[CONF_HUMIDITY_MIN] = (
+                await self._get(self._humidity_min) / 100
+            )
+            self._calc_data[CONF_HUMIDITY_MAX] = (
+                await self._get(self._humidity_max) / 100
+            )
+            self._calc_data[CONF_WIND] = await self._get(self._wind)
+            self._calc_data[CONF_RAIN] = await self._get(self._rain)
+            self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
+            self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
+            self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
 
-        await self.calc()
-        _LOGGER.debug("collect_calculation_data: %s", self._calc_data)
+            await self.calc()
+            _LOGGER.debug("collect_calculation_data: %s", self._calc_data)
+        except ValueError as exception:
+            msg = f"Value error fetching information - {exception}"
+            _LOGGER.exception(msg)
+            raise ETOApiClientCalculationError(
+                msg,
+            ) from exception
+        except Exception as exception:  # pylint: disable=broad-except
+            msg = f"Something really wrong happened! - {exception}"
+            _LOGGER.exception(msg)
+            raise ETOApiClientError(
+                msg,
+            ) from exception
 
     async def async_get_data(self) -> Any:
         """Get data from the API."""
@@ -233,8 +256,6 @@ class ETOApiClient:
 
     async def calc(self) -> None:
         """Perform ETO calculation."""
-        _LOGGER.debug("calc...")
-
         """Step 1: Mean daily temperature."""
         self._calc_data[CALC_S1_5] = mean(
             [self._calc_data[CONF_TEMP_MIN], self._calc_data[CONF_TEMP_MAX]]

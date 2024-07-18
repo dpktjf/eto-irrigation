@@ -1,5 +1,6 @@
 """The Smart Irrigation Integration."""
 
+import logging
 import math
 
 from numpy import mean
@@ -9,6 +10,8 @@ from custom_components.eto_test.const import (
     SOLAR_CONSTANT,
     STEFAN_BOLTZMANN_CONSTANT,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def c_to_k(celcius: float) -> float:
@@ -97,8 +100,8 @@ def wind_speed(wind: float, height: float) -> float:
     :return Wind speed at 2m [ms-1]
     :rtype float
     """
-    numer: float = math.log(67.8 * height) - 5.42
-    return wind / numer
+    numer: float = math.log(67.8 * height - 5.42)
+    return wind * 4.87 / numer
 
 
 def delta_svp(t: float) -> float:
@@ -113,7 +116,7 @@ def delta_svp(t: float) -> float:
     :return: Saturation vapour pressure [kPa degC-1]
     :rtype: float
     """
-    tmp = 4098 * (0.6108 * math.exp((17.27 * t) / (t + 237.3)))
+    tmp = 4098 * (0.6108 * math.exp((17.27 * t) / (c_to_k(t))))
     return tmp / math.pow(c_to_k(t), 2)
 
 
@@ -166,7 +169,7 @@ def delta_term(slope: float, psycho: float, wind_speed: float) -> float:
     :return: Delta Term [kPa degC-1].
     :rtype: float
     """
-    numer: float = slope + psycho * (1 + 0.34 * wind_speed)
+    numer: float = psycho * (1 + (0.34 * wind_speed)) + slope
     return slope / numer
 
 
@@ -399,6 +402,7 @@ def net_out_lw_rad(tmin, tmax, sol_rad, cs_rad, avp):
     tmp1 = STEFAN_BOLTZMANN_CONSTANT * mean([math.pow(tmax, 4), math.pow(tmin, 4)])
     tmp2 = 0.34 - (0.14 * math.sqrt(avp))
     tmp3 = 1.35 * (sol_rad / cs_rad) - 0.35
+    # _LOGGER.debug(f"tmp1={tmp1}, tmp2={tmp2}, tmp3={tmp3}")  # noqa: G004
     return tmp1 * tmp2 * tmp3
 
 
