@@ -9,6 +9,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
 )
+from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
 from homeassistant.const import UnitOfLength
 
 from custom_components.eto_test.const import CALC_FSETO_35
@@ -28,6 +29,8 @@ ENTITY_DESCRIPTIONS = (
         name="Reference Evapotranspiration Value",
         icon="mdi:weather-rainy",
         native_unit_of_measurement=UnitOfLength.MILLIMETERS,
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
 )
 _LOGGER = logging.getLogger(__name__)
@@ -64,4 +67,4 @@ class ETOSensor(ETOEntity, SensorEntity):
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
         _LOGGER.debug(self.coordinator.data[CALC_FSETO_35])
-        return self.coordinator.data[CALC_FSETO_35]
+        return self.coordinator.data[CALC_FSETO_35].round(2)

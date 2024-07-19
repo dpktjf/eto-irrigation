@@ -212,7 +212,7 @@ def temperature_term(mean_temp: float, wind_speed: float) -> float:
     :return: Temperature Term.
     :rtype: float
     """
-    return (900 / c_to_k(mean_temp)) * wind_speed
+    return (900 / (mean_temp + 273)) * wind_speed
 
 
 def svp_from_t(t: float) -> float:
@@ -494,4 +494,5 @@ def eto(wind_term: float, rad_term: float) -> float:
     :return: Final Reference Evapotranspiration Value [mm day-1].
     :rtype: float
     """
+    # raise ValueError("test error")  # noqa: ERA001
     return wind_term + rad_term
