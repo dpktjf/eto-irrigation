@@ -3,7 +3,7 @@
 import logging
 import math
 
-from numpy import mean
+from numpy import floating, mean
 
 from custom_components.eto_test.const import (
     K_TO_C_FACTOR,
@@ -59,7 +59,8 @@ def _check_doy(doy: int) -> None:
 
 def _check_latitude_rad(latitude: float) -> None:
     if not _MINLAT_RADIANS <= latitude <= _MAXLAT_RADIANS:
-        msg = f"latitude outside valid range {_MINLAT_RADIANS!r} to {_MAXLAT_RADIANS!r} rad: {latitude!r}"
+        msg = f"latitude outside valid range {_MINLAT_RADIANS!r} to \
+            {_MAXLAT_RADIANS!r} rad: {latitude!r}"
         raise ValueError(msg)
 
 
@@ -70,7 +71,8 @@ def _check_sol_dec_rad(sd: float) -> None:
     See http://mypages.iit.edu/~maslanka/SolarGeo.pdf
     """
     if not _MINSOLDEC_RADIANS <= sd <= _MAXSOLDEC_RADIANS:
-        msg = f"solar declination outside valid range {_MINSOLDEC_RADIANS!r} to {_MAXSOLDEC_RADIANS!r} rad: {sd!r}"
+        msg = f"solar declination outside valid range {_MINSOLDEC_RADIANS!r} to \
+            {_MAXSOLDEC_RADIANS!r} rad: {sd!r}"
         raise ValueError(msg)
 
 
@@ -81,7 +83,8 @@ def _check_sunset_hour_angle_rad(sha: float) -> None:
     See http://mypages.iit.edu/~maslanka/SolarGeo.pdf
     """
     if not _MINSHA_RADIANS <= sha <= _MAXSHA_RADIANS:
-        msg = f"sunset hour angle outside valid range {_MINSHA_RADIANS!r} to {_MAXSHA_RADIANS!r} rad: {sha!r}"
+        msg = f"sunset hour angle outside valid range {_MINSHA_RADIANS!r} to \
+            {_MAXSHA_RADIANS!r} rad: {sha!r}"
         raise ValueError(msg)
 
 
@@ -212,7 +215,7 @@ def temperature_term(mean_temp: float, wind_speed: float) -> float:
     return (900 / c_to_k(mean_temp)) * wind_speed
 
 
-def svp_from_t(t):
+def svp_from_t(t: float) -> float:
     """
     Estimate saturation vapour pressure (*es*) from air temperature.
 
@@ -241,7 +244,7 @@ def ea_from_rh(t: float, h: float) -> float:
     return t * h
 
 
-def inv_rel_dist_earth_sun(day_of_year):
+def inv_rel_dist_earth_sun(day_of_year: int) -> float:
     """
     Calculate the inverse relative distance between earth and sun from day of the year.
 
@@ -369,7 +372,9 @@ def net_in_sol_rad(sol_rad: float, albedo: float) -> float:
     return (1 - albedo) * sol_rad
 
 
-def net_out_lw_rad(tmin, tmax, sol_rad, cs_rad, avp):
+def net_out_lw_rad(
+    tmin: float, tmax: float, sol_rad: float, cs_rad: float, avp: float
+) -> float:
     """
     Estimate net outgoing longwave radiation.
 
@@ -399,11 +404,13 @@ def net_out_lw_rad(tmin, tmax, sol_rad, cs_rad, avp):
     :return: Net outgoing longwave radiation [MJ m-2 day-1]
     :rtype: float
     """
-    tmp1 = STEFAN_BOLTZMANN_CONSTANT * mean([math.pow(tmax, 4), math.pow(tmin, 4)])
-    tmp2 = 0.34 - (0.14 * math.sqrt(avp))
-    tmp3 = 1.35 * (sol_rad / cs_rad) - 0.35
+    tmp1: floating = STEFAN_BOLTZMANN_CONSTANT * mean(
+        [math.pow(tmax, 4), math.pow(tmin, 4)]
+    )
+    tmp2: float = 0.34 - (0.14 * math.sqrt(avp))
+    tmp3: float = 1.35 * (sol_rad / cs_rad) - 0.35
     # _LOGGER.debug(f"tmp1={tmp1}, tmp2={tmp2}, tmp3={tmp3}")  # noqa: G004
-    return tmp1 * tmp2 * tmp3
+    return tmp1 * tmp2 * tmp3  # type: ignore
 
 
 def net_rad(net_solar: float, lw_rad: float) -> float:
@@ -413,11 +420,13 @@ def net_rad(net_solar: float, lw_rad: float) -> float:
     The net radiation (Rn) is the difference between the incoming net shortwave
     radiation (Rns) and the outgoing net longwave radiation (Rnl):
 
-    Based on step 19 equation 31 - Step by Step Calculation of the Penman-Monteith
-    Evapotranspiration (FAO-56 Method)
+    Based on step 19 equation 31 - Step by Step Calculation of the
+    Penman-Monteith Evapotranspiration (FAO-56 Method)
 
-    :param net_solar: net solar or shortwave radiation, MJ m-2 day-1, [Step 17, Eq. 29];.
-    :param lw_rad: net outgoing longwave radiation, MJ m-2 day-1,[Step 18, Eq. 30].
+    :param net_solar: net solar or shortwave radiation, MJ m-2 day-1, [Step 17,
+        Eq. 29]
+    :param lw_rad: net outgoing longwave radiation, MJ m-2 day-1,[Step 18, Eq.
+        30].
     :return: Net radiation [MJ m-2 day-1].
     :rtype: float
     """

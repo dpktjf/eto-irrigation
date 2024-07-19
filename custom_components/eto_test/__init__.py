@@ -15,12 +15,10 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.const import (
     CONF_NAME,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
+    # CONF_SCAN_INTERVAL,
     Platform,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import ETOApiClient
@@ -41,6 +39,7 @@ from .data import ETOData
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.typing import ConfigType
 
     from .data import ETOConfigEntry
 

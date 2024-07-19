@@ -6,17 +6,11 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.components.input_number import DOMAIN as INPUT_NUMBER_DOMAIN
-from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.sensor.const import (
     DOMAIN as SENSOR_DOMAIN,
 )
-from homeassistant.components.sensor.const import (
-    SensorDeviceClass,
-)
 from homeassistant.config_entries import (
     ConfigEntry,
-    ConfigFlow,
     ConfigFlowResult,
     OptionsFlow,
     OptionsFlowWithConfigEntry,
@@ -27,14 +21,7 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .api import (
-    ETOApiClient,
-    ETOApiClientAuthenticationError,
-    ETOApiClientCommunicationError,
-    ETOApiClientError,
-)
 from .const import (
     CONF_ALBEDO,
     CONF_HUMIDITY_MAX,
@@ -45,7 +32,6 @@ from .const import (
     CONF_TEMP_MIN,
     CONF_WIND,
     DOMAIN,
-    LOGGER,
 )
 
 
@@ -160,7 +146,8 @@ class ETOFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_onboarding(
-        self, data: dict[str, Any] | None = None
+        self,
+        data: dict[str, Any] | None = None,  # noqa: ARG002
     ) -> ConfigFlowResult:
         """Handle a flow initialized by onboarding."""
         return self.async_create_entry(title="Home", data={})
@@ -181,7 +168,6 @@ class ETOOptionsFlowHandler(OptionsFlowWithConfigEntry):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure options for ETO."""
-
         if user_input is not None:
             # Update config entry with data from user input
             self.hass.config_entries.async_update_entry(

@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+)
+from homeassistant.const import UnitOfLength
+
+from custom_components.eto_test.const import CALC_FSETO_35
 
 from .entity import ETOEntity
 
@@ -18,10 +25,12 @@ if TYPE_CHECKING:
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key="eto_test",
-        name="Integration Sensor",
-        icon="mdi:format-quote-close",
+        name="Reference Evapotranspiration Value",
+        icon="mdi:weather-rainy",
+        native_unit_of_measurement=UnitOfLength.MILLIMETERS,
     ),
 )
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -54,4 +63,5 @@ class ETOSensor(ETOEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+        _LOGGER.debug(self.coordinator.data[CALC_FSETO_35])
+        return self.coordinator.data[CALC_FSETO_35]

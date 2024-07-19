@@ -80,7 +80,7 @@ from custom_components.eto_test.const import (
 )
 
 if TYPE_CHECKING:
-    from homeassistant.core import State, StateMachine
+    from homeassistant.core import StateMachine
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ class ETOApiClient:
         self._calc_data[CONF_LATITUDE] = latitude
         self._calc_data[CONF_LONGITUDE] = longitude
 
-    async def _get(self, ent) -> float:
+    async def _get(self, ent: str) -> float:
         st = self._states.get(ent)
         if st is not None:
             return float(st.state)
@@ -204,10 +204,11 @@ class ETOApiClient:
         """Get data from the API."""
         _LOGGER.debug("async_get_data: %s", self._name)
         await self.collect_calculation_data()
-        return await self._api_wrapper(
-            method="get",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-        )
+        return self._calc_data
+        # return await self._api_wrapper(
+        #    method="get",
+        #    url="https://jsonplaceholder.typicode.com/posts/1",
+        # )
 
     async def async_set_title(self, value: str) -> Any:
         """Get data from the API."""
@@ -276,7 +277,7 @@ class ETOApiClient:
         """Step 5: Atmospheric Pressure (P)"""
         self._calc_data[CALC_S5_10] = atm_pressure(self._calc_data[CONF_ELEVATION])
 
-        """Step 6: Psychrometric constant (γ)"""
+        """Step 6: Psychrometric constant (γ)"""  # noqa: RUF001
         self._calc_data[CALC_S6_11] = psy_const(self._calc_data[CALC_S5_10])
 
         """Step 7: Delta Term (DT) (auxiliary calculation for Radiation Term)"""
