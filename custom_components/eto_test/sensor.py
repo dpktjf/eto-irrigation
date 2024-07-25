@@ -80,6 +80,6 @@ class ETOSensor(ETOEntity, SensorEntity):
             attributes[CONF_TEMP_MIN] = self.coordinator.data[CONF_TEMP_MIN]
             attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
         except ETOApiClientError as ex:
-            _LOGGER.exception(ex)
+            _LOGGER.exception(ex)  # noqa: TRY401
 
         return attributes

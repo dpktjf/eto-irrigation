@@ -57,9 +57,9 @@ DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 
 ETO_SCHEMA = vol.Schema(
     {
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,  # type: ignore
-        vol.Optional(CONF_TEMP_MIN, default=CONF_TEMP_MIN): cv.string,  # type: ignore
-        vol.Optional(CONF_TEMP_MAX, default=CONF_TEMP_MAX): cv.string,  # type: ignore
+        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,  # type: ignore  # noqa: PGH003
+        vol.Optional(CONF_TEMP_MIN, default=CONF_TEMP_MIN): cv.string,  # type: ignore  # noqa: PGH003
+        vol.Optional(CONF_TEMP_MAX, default=CONF_TEMP_MAX): cv.string,  # type: ignore  # noqa: PGH003
     }
 )
 
