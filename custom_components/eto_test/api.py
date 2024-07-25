@@ -15,6 +15,8 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
 )
+from pkg_resources import UnknownExtra
+from yaml import StreamStartEvent
 
 from custom_components.eto_test.api_helpers import (
     atm_pressure,
@@ -107,6 +109,12 @@ class ETOApiClientCalculationError(
     """Exception to indicate a calculation error."""
 
 
+class ETOApiClientCalculationStartupError(
+    ETOApiClientError,
+):
+    """Exception to indicate a calculation error - probably due to start-up ."""
+
+
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """Verify that the response is valid."""
     if response.status in (401, 403):
@@ -120,7 +128,7 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
 class ETOApiClient:
     """Sample API Client."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         latitude: float,
@@ -156,9 +164,15 @@ class ETOApiClient:
 
     async def _get(self, ent: str) -> float:
         st = self._states.get(ent)
+        #        if st is not None and isinstance(st.state, float):
         if st is not None:
+            if st.state == "unknown":
+                msg = "State unknown; probably starting up???"
+                raise ETOApiClientCalculationStartupError(
+                    msg,
+                )
             return float(st.state)
-        msg = "States not yet available - probably starting up???"
+        msg = "States not yet available; probably starting up???"
         raise ETOApiClientCalculationError(
             msg,
         )

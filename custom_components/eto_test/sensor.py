@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -12,7 +12,8 @@ from homeassistant.components.sensor import (
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
 from homeassistant.const import UnitOfLength
 
-from custom_components.eto_test.const import CALC_FSETO_35
+from custom_components.eto_test.api import ETOApiClientError
+from custom_components.eto_test.const import CALC_FSETO_35, CONF_TEMP_MAX, CONF_TEMP_MIN
 
 from .entity import ETOEntity
 
@@ -68,3 +69,17 @@ class ETOSensor(ETOEntity, SensorEntity):
         """Return the native value of the sensor."""
         _LOGGER.debug(self.coordinator.data[CALC_FSETO_35])
         return self.coordinator.data[CALC_FSETO_35].round(2)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the device specific state attributes."""
+        attributes: dict[str, Any] = {}
+        _LOGGER.debug("extra_state_attributes")
+
+        try:
+            attributes[CONF_TEMP_MIN] = self.coordinator.data[CONF_TEMP_MIN]
+            attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
+        except ETOApiClientError as ex:
+            _LOGGER.exception(ex)
+
+        return attributes

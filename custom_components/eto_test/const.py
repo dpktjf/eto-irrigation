@@ -21,6 +21,9 @@ CONF_SOLAR_RAD = "solar_rad"
 CONF_ALBEDO = "albedo"
 CONF_DOY = "day_of_year"
 
+# additional attributes
+
+
 # calculation factors
 CALC_S1_5 = "calc_mean_daily_temp_Tmean"
 CALC_S2_6 = "calc_mean_daily_solar_rad_Rs"
