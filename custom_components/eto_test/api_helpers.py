@@ -52,7 +52,7 @@ _MAXSHA_RADIANS = deg2rad(180)
 
 def _check_doy(doy: int) -> None:
     """Check day of the year is valid."""
-    if not 1 <= doy <= 366:
+    if not 1 <= doy <= 366:  # noqa: PLR2004
         msg = f"Day of the year (doy) must be in range 1-366: {doy!r}"
         raise ValueError(msg)
 
@@ -409,8 +409,7 @@ def net_out_lw_rad(
     )
     tmp2: float = 0.34 - (0.14 * math.sqrt(avp))
     tmp3: float = 1.35 * (sol_rad / cs_rad) - 0.35
-    # _LOGGER.debug(f"tmp1={tmp1}, tmp2={tmp2}, tmp3={tmp3}")  # noqa: G004
-    return tmp1 * tmp2 * tmp3  # type: ignore
+    return tmp1 * tmp2 * tmp3 # type: ignore  # noqa: PGH003
 
 
 def net_rad(net_solar: float, lw_rad: float) -> float:

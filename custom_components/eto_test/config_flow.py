@@ -40,7 +40,7 @@ def configured_instances(hass: HomeAssistant) -> set[str]:
     """Return a set of configured instances."""
     entries = []
     for entry in hass.config_entries.async_entries(DOMAIN):
-        entries.append(entry.data.get(CONF_NAME))
+        entries.append(entry.data.get(CONF_NAME))  # noqa: PERF401
     return set(entries)
 
 
@@ -83,39 +83,39 @@ def _get_data_schema(
         {
             vol.Required(
                 CONF_NAME,
-                default=config_entry.data.get(CONF_NAME),  # type: ignore
+                default=config_entry.data.get(CONF_NAME),  # type: ignore  # noqa: PGH003
             ): cv.string,
             vol.Required(
                 CONF_TEMP_MIN,
-                default=config_entry.data.get(CONF_TEMP_MIN),  # type: ignore
+                default=config_entry.data.get(CONF_TEMP_MIN),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_TEMP_MAX,
-                default=config_entry.data.get(CONF_TEMP_MIN),  # type: ignore
+                default=config_entry.data.get(CONF_TEMP_MIN),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_HUMIDITY_MIN,
-                default=config_entry.data.get(CONF_HUMIDITY_MIN),  # type: ignore
+                default=config_entry.data.get(CONF_HUMIDITY_MIN),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_HUMIDITY_MAX,
-                default=config_entry.data.get(CONF_HUMIDITY_MAX),  # type: ignore
+                default=config_entry.data.get(CONF_HUMIDITY_MAX),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_WIND,
-                default=config_entry.data.get(CONF_WIND),  # type: ignore
+                default=config_entry.data.get(CONF_WIND),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_RAIN,
-                default=config_entry.data.get(CONF_RAIN),  # type: ignore
+                default=config_entry.data.get(CONF_RAIN),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_SOLAR_RAD,
-                default=config_entry.data.get(CONF_SOLAR_RAD),  # type: ignore
+                default=config_entry.data.get(CONF_SOLAR_RAD),  # type: ignore  # noqa: PGH003
             ): entity_selector,
             vol.Required(
                 CONF_ALBEDO,
-                default=config_entry.data.get(CONF_ALBEDO),  # type: ignore
+                default=config_entry.data.get(CONF_ALBEDO),  # type: ignore  # noqa: PGH003
             ): entity_selector,
         }
     )
