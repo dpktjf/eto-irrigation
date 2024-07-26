@@ -45,7 +45,8 @@ def configured_instances(hass: HomeAssistant) -> set[str]:
 
 
 def _get_data_schema(
-    hass: HomeAssistant, config_entry: ConfigEntry | None = None  # noqa: ARG001
+    hass: HomeAssistant,  # noqa: ARG001
+    config_entry: ConfigEntry | None = None,
 ) -> vol.Schema:
     """Get a schema with default values."""
     # If tracking home or no config entry is passed in, default value come from

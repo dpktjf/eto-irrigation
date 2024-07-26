@@ -409,7 +409,7 @@ def net_out_lw_rad(
     )
     tmp2: float = 0.34 - (0.14 * math.sqrt(avp))
     tmp3: float = 1.35 * (sol_rad / cs_rad) - 0.35
-    return tmp1 * tmp2 * tmp3 # type: ignore  # noqa: PGH003
+    return tmp1 * tmp2 * tmp3  # type: ignore  # noqa: PGH003
 
 
 def net_rad(net_solar: float, lw_rad: float) -> float:
