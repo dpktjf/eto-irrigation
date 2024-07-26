@@ -13,7 +13,7 @@ from homeassistant.components.sensor.const import SensorDeviceClass, SensorState
 from homeassistant.const import UnitOfLength
 
 from custom_components.eto_test.api import ETOApiClientError
-from custom_components.eto_test.const import CALC_FSETO_35, CONF_TEMP_MAX, CONF_TEMP_MIN
+from custom_components.eto_test.const import CALC_FSETO_35, CONF_ALBEDO, CONF_DOY, CONF_HUMIDITY_MAX, CONF_HUMIDITY_MIN, CONF_RAIN, CONF_SOLAR_RAD, CONF_TEMP_MAX, CONF_TEMP_MIN, CONF_WIND
 
 from .entity import ETOEntity
 
@@ -79,6 +79,13 @@ class ETOSensor(ETOEntity, SensorEntity):
         try:
             attributes[CONF_TEMP_MIN] = self.coordinator.data[CONF_TEMP_MIN]
             attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
+            attributes[CONF_HUMIDITY_MIN] = self.coordinator.data[CONF_HUMIDITY_MIN]
+            attributes[CONF_HUMIDITY_MAX] = self.coordinator.data[CONF_HUMIDITY_MAX]
+            attributes[CONF_RAIN] = self.coordinator.data[CONF_RAIN]
+            attributes[CONF_WIND] = self.coordinator.data[CONF_WIND]
+            attributes[CONF_ALBEDO] = self.coordinator.data[CONF_ALBEDO]
+            attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
+            attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
         except ETOApiClientError as ex:
             _LOGGER.exception(ex)  # noqa: TRY401
 
