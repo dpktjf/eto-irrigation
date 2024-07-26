@@ -1,9 +1,6 @@
 {
     "name": "ETO Test",
     "country": "ALL",
-    "domains": [
-        "sensor"
-    ],
     "hide_default_branch": true,
     "homeassistant": "2024.7.2",
     "render_readme": true
