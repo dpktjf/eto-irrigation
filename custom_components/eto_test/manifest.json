@@ -5,11 +5,11 @@
     "@dpktjf"
   ],
   "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/dpktjf/eto-test",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/dpktjf/eto-test/issues",
-  "version": "0.0.0",
   "integration_type": "hub",
+  "issue_tracker": "https://github.com/dpktjf/eto-test/issues",
   "requirements": [],
-  "dependencies": []
+  "version": "0.0.0"
 }
