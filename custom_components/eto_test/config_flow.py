@@ -28,6 +28,7 @@ from .const import (
     CONF_HUMIDITY_MIN,
     CONF_RAIN,
     CONF_SOLAR_RAD,
+    CONF_SPRINKLER_THROUGHPUT,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
@@ -77,6 +78,7 @@ def _get_data_schema(
                 vol.Required(CONF_RAIN): entity_selector,
                 vol.Required(CONF_SOLAR_RAD): entity_selector,
                 vol.Required(CONF_ALBEDO): entity_selector,
+                vol.Required(CONF_SPRINKLER_THROUGHPUT): entity_selector,
             }
         )
     # Not tracking home, default values come from config entry
@@ -117,6 +119,10 @@ def _get_data_schema(
             vol.Required(
                 CONF_ALBEDO,
                 default=config_entry.data.get(CONF_ALBEDO),  # type: ignore  # noqa: PGH003
+            ): entity_selector,
+            vol.Required(
+                CONF_SPRINKLER_THROUGHPUT,
+                default=config_entry.data.get(CONF_SPRINKLER_THROUGHPUT),  # type: ignore  # noqa: PGH003
             ): entity_selector,
         }
     )

@@ -10,10 +10,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfLength
+from homeassistant.const import UnitOfTime
 
 from custom_components.eto_test.api import ETOApiClientError
 from custom_components.eto_test.const import (
+    CALC_DURATION,
     CALC_FSETO_35,
     CONF_ALBEDO,
     CONF_DOY,
@@ -21,6 +22,7 @@ from custom_components.eto_test.const import (
     CONF_HUMIDITY_MIN,
     CONF_RAIN,
     CONF_SOLAR_RAD,
+    CONF_SPRINKLER_THROUGHPUT,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
@@ -38,10 +40,10 @@ if TYPE_CHECKING:
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key="eto_test",
-        name="Reference Evapotranspiration Value",
-        icon="mdi:weather-rainy",
-        native_unit_of_measurement=UnitOfLength.MILLIMETERS,
-        device_class=SensorDeviceClass.DISTANCE,
+        name="Zone Run Time Duration",
+        icon="mdi:sprinkler",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
@@ -78,8 +80,8 @@ class ETOSensor(ETOEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
-        _LOGGER.debug(self.coordinator.data[CALC_FSETO_35])
-        return self.coordinator.data[CALC_FSETO_35].round(2)
+        _LOGGER.debug(self.coordinator.data[CALC_DURATION])
+        return self.coordinator.data[CALC_DURATION]
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -97,6 +99,9 @@ class ETOSensor(ETOEntity, SensorEntity):
             attributes[CONF_ALBEDO] = self.coordinator.data[CONF_ALBEDO]
             attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
+            attributes[CONF_SPRINKLER_THROUGHPUT] = self.coordinator.data[CONF_SPRINKLER_THROUGHPUT]  # noqa: E501
+            attributes[CALC_FSETO_35] = self.coordinator.data[CALC_FSETO_35].round(2)
+
         except ETOApiClientError as ex:
             _LOGGER.exception(ex)  # noqa: TRY401
 

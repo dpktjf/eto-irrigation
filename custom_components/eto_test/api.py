@@ -19,6 +19,7 @@ from homeassistant.const import (
 from custom_components.eto_test.api_helpers import (
     atm_pressure,
     c_to_k,
+    calc_duration,
     cs_rad,
     deg2rad,
     delta_svp,
@@ -42,6 +43,7 @@ from custom_components.eto_test.api_helpers import (
     wind_term,
 )
 from custom_components.eto_test.const import (
+    CALC_DURATION,
     CALC_FS_33,
     CALC_FS_34,
     CALC_FSETO_35,
@@ -74,6 +76,7 @@ from custom_components.eto_test.const import (
     CONF_HUMIDITY_MIN,
     CONF_RAIN,
     CONF_SOLAR_RAD,
+    CONF_SPRINKLER_THROUGHPUT,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
@@ -140,6 +143,7 @@ class ETOApiClient:
         rain: str,
         solar_rad: str,
         albedo: str,
+        sprinkler: str,
         session: aiohttp.ClientSession,
         states: StateMachine,
     ) -> None:
@@ -153,6 +157,7 @@ class ETOApiClient:
         self._rain = rain
         self._solar_rad = solar_rad
         self._albedo = albedo
+        self._sprinkler = sprinkler
         self._session = session
         self._states = states
         self._calc_data = {}
@@ -196,8 +201,18 @@ class ETOApiClient:
             self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
             self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
             self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
+            self._calc_data[CONF_SPRINKLER_THROUGHPUT] = await self._get(self._sprinkler)  # noqa: E501
 
-            await self.calc()
+            await self.calc_eto()
+            self._calc_data[CALC_DURATION] = calc_duration(self._calc_data[CALC_FSETO_35],  # noqa: E501
+                                                           self._calc_data[CONF_RAIN],
+                                                           self._calc_data[CONF_SPRINKLER_THROUGHPUT])
+            """
+                delta = precip - eto : < 0 means irrigation required
+                precip_rate = throughput(LPH) / size(M2)
+                duration = abs(delta) / precip_rate * 3600
+            """
+
             _LOGGER.debug("collect_calculation_data: %s", self._calc_data)
         except ValueError as exception:
             msg = f"Value error fetching information - {exception}"
@@ -263,7 +278,7 @@ class ETOApiClient:
                 msg,
             ) from exception
 
-    async def calc(self) -> None:
+    async def calc_eto(self) -> None:
         """Perform ETO calculation."""
         """Step 1: Mean daily temperature."""
         self._calc_data[CALC_S1_5] = mean(

@@ -495,3 +495,23 @@ def eto(wind_term: float, rad_term: float) -> float:
     """
     # raise ValueError("test error")  # noqa: ERA001
     return wind_term + rad_term
+
+def calc_duration(eto: float, rain: float, throughput: float) -> int:
+    """
+    Calculate runtime duration in seconds.
+
+    Calculate difference between the days rain fall and the required ETO and if
+    negative, then watering is required. Calculate based on the delta and
+    sprinkler throughput provided.
+
+    :param eto: Final Reference Evapotranspiration Value [mm day-1]
+    :param rain: Daily rainfall [mm]
+    :param throughput: Sprinkler throughput [mm hour-1]
+    :rtype: int
+    """
+    delta: float = rain - eto
+    if delta < 0:
+        # not enough rainfall for the day given ETO; work out runtime duration
+        reqd: float = abs(delta) / throughput * 60 * 60
+        return round(reqd)
+    return 0

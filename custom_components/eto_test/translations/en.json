@@ -13,7 +13,8 @@
                     "wind": "Wind",
                     "rain": "Rain",
                     "albedo": "Albedo",
-                    "solar_rad": "Solar Rad"
+                    "solar_rad": "Solar Rad",
+                    "sprinkler_throughput": "Sprinkler Throughput"
                 }
             }
         },
