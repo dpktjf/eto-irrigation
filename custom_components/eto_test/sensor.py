@@ -13,7 +13,18 @@ from homeassistant.components.sensor.const import SensorDeviceClass, SensorState
 from homeassistant.const import UnitOfLength
 
 from custom_components.eto_test.api import ETOApiClientError
-from custom_components.eto_test.const import CALC_FSETO_35, CONF_ALBEDO, CONF_DOY, CONF_HUMIDITY_MAX, CONF_HUMIDITY_MIN, CONF_RAIN, CONF_SOLAR_RAD, CONF_TEMP_MAX, CONF_TEMP_MIN, CONF_WIND
+from custom_components.eto_test.const import (
+    CALC_FSETO_35,
+    CONF_ALBEDO,
+    CONF_DOY,
+    CONF_HUMIDITY_MAX,
+    CONF_HUMIDITY_MIN,
+    CONF_RAIN,
+    CONF_SOLAR_RAD,
+    CONF_TEMP_MAX,
+    CONF_TEMP_MIN,
+    CONF_WIND,
+)
 
 from .entity import ETOEntity
 
