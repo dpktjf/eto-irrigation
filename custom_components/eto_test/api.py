@@ -217,10 +217,6 @@ class ETOApiClient:
         _LOGGER.debug("async_get_data: %s", self._name)
         await self.collect_calculation_data()
         return self._calc_data
-        # return await self._api_wrapper(
-        #    method="get",  # noqa: ERA001
-        #    url="https://jsonplaceholder.typicode.com/posts/1",# noqa: ERA001
-        # )
 
     async def async_set_title(self, value: str) -> Any:
         """Get data from the API."""
