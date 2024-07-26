@@ -1,6 +1,7 @@
 {
   "domain": "eto_test",
   "name": "ETO Test",
+  "after_dependencies": [],
   "codeowners": [
     "@dpktjf"
   ],
@@ -10,6 +11,7 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/dpktjf/eto-test/issues",
+  "loggers": [],
   "requirements": [],
   "version": "0.0.0"
 }
