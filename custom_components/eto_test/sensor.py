@@ -94,8 +94,8 @@ class ETOSensor(ETOEntity, SensorEntity):
             attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
             attributes[CONF_HUMIDITY_MIN] = self.coordinator.data[CONF_HUMIDITY_MIN]
             attributes[CONF_HUMIDITY_MAX] = self.coordinator.data[CONF_HUMIDITY_MAX]
-            attributes[CONF_RAIN] = self.coordinator.data[CONF_RAIN]
-            attributes[CONF_WIND] = self.coordinator.data[CONF_WIND]
+            attributes[CONF_RAIN] = self.coordinator.data[CONF_RAIN].round(1)
+            attributes[CONF_WIND] = self.coordinator.data[CONF_WIND].round(1)
             attributes[CONF_ALBEDO] = self.coordinator.data[CONF_ALBEDO]
             attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
