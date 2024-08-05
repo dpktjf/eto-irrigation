@@ -15,7 +15,16 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
 )
-
+from homeassistant.util.unit_conversion import SpeedConverter
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_LATITUDE,
+    CONF_LONGITUDE,
+    UnitOfLength,
+    UnitOfPressure,
+    UnitOfSpeed,
+    UnitOfTemperature,
+)
 from custom_components.eto_test.api_helpers import (
     atm_pressure,
     c_to_k,
@@ -197,6 +206,11 @@ class ETOApiClient:
                 await self._get(self._humidity_max) / 100
             )
             self._calc_data[CONF_WIND] = await self._get(self._wind)
+            self._calc_data[CONF_WIND] = SpeedConverter.convert(
+                self._calc_data[CONF_WIND],
+                UnitOfSpeed.KILOMETERS_PER_HOUR,
+                UnitOfSpeed.METERS_PER_SECOND,
+            )
             self._calc_data[CONF_RAIN] = await self._get(self._rain)
             self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
             self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
