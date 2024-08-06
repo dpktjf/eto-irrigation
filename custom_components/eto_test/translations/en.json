@@ -1,7 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "[%key:common::config_flow::abort::already_configured_location%]"
+            "already_configured": "Zone already configured"
         },
         "error": {
             "cannot_connect": "Failed to connect: {error}",
@@ -24,7 +24,7 @@
                     "solar_rad": "Solar Rad",
                     "sprinkler_throughput": "Sprinkler Throughput"
                 },
-                "description": "This is am insert test"
+                "description": "Configure the watering zone"
             }
         }
     },

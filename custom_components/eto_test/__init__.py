@@ -11,7 +11,6 @@ import logging
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_NAME,
     # CONF_SCAN_INTERVAL,
@@ -58,7 +57,6 @@ async def async_setup_entry(
     entry: ETOConfigEntry,
 ) -> bool:
     """Set up this integration using UI."""
-    _LOGGER.debug("async_setup_entry - data=%s", entry.data)
     _name = entry.data[CONF_NAME]
 
     eto_api = ETOApiClient(
@@ -66,15 +64,15 @@ async def async_setup_entry(
         latitude=hass.config.latitude,
         longitude=hass.config.longitude,
         elevation=hass.config.elevation,
-        temp_min=entry.data[CONF_TEMP_MIN],
-        temp_max=entry.data[CONF_TEMP_MAX],
-        humidity_min=entry.data[CONF_HUMIDITY_MIN],
-        humidity_max=entry.data[CONF_HUMIDITY_MAX],
-        wind=entry.data[CONF_WIND],
-        rain=entry.data[CONF_RAIN],
-        solar_rad=entry.data[CONF_SOLAR_RAD],
-        albedo=entry.data[CONF_ALBEDO],
-        sprinkler=entry.data[CONF_SPRINKLER_THROUGHPUT],
+        temp_min=entry.options[CONF_TEMP_MIN],
+        temp_max=entry.options[CONF_TEMP_MAX],
+        humidity_min=entry.options[CONF_HUMIDITY_MIN],
+        humidity_max=entry.options[CONF_HUMIDITY_MAX],
+        wind=entry.options[CONF_WIND],
+        rain=entry.options[CONF_RAIN],
+        solar_rad=entry.options[CONF_SOLAR_RAD],
+        albedo=entry.options[CONF_ALBEDO],
+        sprinkler=entry.options[CONF_SPRINKLER_THROUGHPUT],
         session=async_get_clientsession(hass),
         states=hass.states,
     )
@@ -93,7 +91,6 @@ async def async_setup_entry(
 
 async def async_update_options(hass: HomeAssistant, entry: ETOConfigEntry) -> None:
     """Update options."""
-    _LOGGER.debug("async_update_options-%s", entry.entry_id)
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -102,40 +99,4 @@ async def async_unload_entry(
     entry: ETOConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
-    _LOGGER.debug("async_unload_entry-%s", entry.entry_id)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-
-# Example migration function
-async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Migrate old entry."""
-    _LOGGER.debug(
-        "Migrating configuration from version %s.%s",
-        config_entry.version,
-        config_entry.minor_version,
-    )
-
-    if config_entry.version > 1:
-        # This means the user has downgraded from a future version
-        return False
-
-    if config_entry.version == 1:
-        new_data = {**config_entry.data}
-        if config_entry.minor_version < 2:
-            # TODO: modify Config Entry data with changes in version 1.2
-            pass
-        if config_entry.minor_version < 3:
-            # TODO: modify Config Entry data with changes in version 1.3
-            pass
-
-        hass.config_entries.async_update_entry(
-            config_entry, data=new_data, minor_version=3, version=1
-        )
-
-    _LOGGER.debug(
-        "Migration to configuration version %s.%s successful",
-        config_entry.version,
-        config_entry.minor_version,
-    )
-
-    return True

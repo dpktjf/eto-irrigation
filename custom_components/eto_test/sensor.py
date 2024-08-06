@@ -42,16 +42,6 @@ if TYPE_CHECKING:
     from .coordinator import ETODataUpdateCoordinator
     from .data import ETOConfigEntry
 
-ENTITY_DESCRIPTIONS = (
-    SensorEntityDescription(
-        key="eto_test",
-        name="ETO Run Time",
-        icon="mdi:sprinkler",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-        device_class=SensorDeviceClass.DURATION,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-)
 WEATHER_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_API_RUNTIME,
@@ -107,12 +97,6 @@ class AbstractETOSensor(SensorEntity):
         self._attr_name = f"{name} {description.name}"
         self._attr_unique_id = unique_id
         split_unique_id = unique_id.split("-")
-        _LOGGER.debug(
-            "_attr_name=%s, _attr_unique_id=%s, split_unique_id=%s",
-            self._attr_name,
-            self._attr_unique_id,
-            split_unique_id,
-        )
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, f"{split_unique_id[0]}.lower()")},
@@ -153,14 +137,12 @@ class ETOSensor(AbstractETOSensor):
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
-        _LOGGER.debug(self.coordinator.data[CALC_DURATION])
         return self.coordinator.data[CALC_DURATION]
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the device specific state attributes."""
         attributes: dict[str, Any] = {}
-        _LOGGER.debug("extra_state_attributes")
 
         try:
             attributes[CONF_TEMP_MIN] = self.coordinator.data[CONF_TEMP_MIN]

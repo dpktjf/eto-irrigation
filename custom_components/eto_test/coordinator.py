@@ -45,9 +45,6 @@ class ETODataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> Any:
         """Update data via library."""
         try:
-            self.logger.debug(
-                "_async_update_data: %s / %s", self.config_entry, self._eto_client
-            )
             return await self._eto_client.async_get_data()
         except ETOApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
