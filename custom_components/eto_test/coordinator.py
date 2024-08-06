@@ -39,7 +39,7 @@ class ETODataUpdateCoordinator(DataUpdateCoordinator):
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=1),
+            update_interval=timedelta(minutes=10),
         )
 
     async def _async_update_data(self) -> Any:
