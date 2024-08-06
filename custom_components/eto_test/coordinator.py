@@ -9,6 +9,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import (
+    ETOApiClient,
     ETOApiClientAuthenticationError,
     ETOApiClientError,
 )
@@ -28,21 +29,24 @@ class ETODataUpdateCoordinator(DataUpdateCoordinator):
 
     def __init__(
         self,
+        eto_client: ETOApiClient,
         hass: HomeAssistant,
     ) -> None:
         """Initialize."""
+        self._eto_client = eto_client
+
         super().__init__(
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=10),
+            update_interval=timedelta(minutes=1),
         )
 
     async def _async_update_data(self) -> Any:
         """Update data via library."""
         try:
             self.logger.debug(self.config_entry)
-            return await self.config_entry.runtime_data.client.async_get_data()
+            return await self._eto_client.async_get_data()
         except ETOApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except ETOApiClientError as exception:

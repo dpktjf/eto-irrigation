@@ -14,17 +14,10 @@ from homeassistant.const import (
     CONF_ELEVATION,
     CONF_LATITUDE,
     CONF_LONGITUDE,
+    UnitOfSpeed,
 )
 from homeassistant.util.unit_conversion import SpeedConverter
-from homeassistant.const import (
-    CONF_API_KEY,
-    CONF_LATITUDE,
-    CONF_LONGITUDE,
-    UnitOfLength,
-    UnitOfPressure,
-    UnitOfSpeed,
-    UnitOfTemperature,
-)
+
 from custom_components.eto_test.api_helpers import (
     atm_pressure,
     c_to_k,
@@ -173,6 +166,7 @@ class ETOApiClient:
         self._calc_data[CONF_ELEVATION] = elevation
         self._calc_data[CONF_LATITUDE] = latitude
         self._calc_data[CONF_LONGITUDE] = longitude
+        _LOGGER.debug("temp min/max=%s/%s", self._temp_min, self._temp_max)
 
     async def _get(self, ent: str) -> float:
         st = self._states.get(ent)
@@ -215,12 +209,16 @@ class ETOApiClient:
             self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
             self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
             self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
-            self._calc_data[CONF_SPRINKLER_THROUGHPUT] = await self._get(self._sprinkler)  # noqa: E501
+            self._calc_data[CONF_SPRINKLER_THROUGHPUT] = await self._get(
+                self._sprinkler
+            )  # noqa: E501
 
             await self.calc_eto()
-            self._calc_data[CALC_DURATION] = calc_duration(self._calc_data[CALC_FSETO_35],  # noqa: E501
-                                                           self._calc_data[CONF_RAIN],
-                                                           self._calc_data[CONF_SPRINKLER_THROUGHPUT])
+            self._calc_data[CALC_DURATION] = calc_duration(
+                self._calc_data[CALC_FSETO_35],  # noqa: E501
+                self._calc_data[CONF_RAIN],
+                self._calc_data[CONF_SPRINKLER_THROUGHPUT],
+            )
             """
                 delta = precip - eto : < 0 means irrigation required
                 precip_rate = throughput(LPH) / size(M2)

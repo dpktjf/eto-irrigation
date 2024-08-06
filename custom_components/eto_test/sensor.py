@@ -11,9 +11,12 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
 from homeassistant.const import UnitOfTime
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from custom_components.eto_test.api import ETOApiClientError
 from custom_components.eto_test.const import (
+    ATTR_API_RUNTIME,
+    ATTRIBUTION,
     CALC_DURATION,
     CALC_FSETO_35,
     CONF_ALBEDO,
@@ -26,13 +29,15 @@ from custom_components.eto_test.const import (
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
+    DEFAULT_NAME,
+    DOMAIN,
+    MANUFACTURER,
 )
-
-from .entity import ETOEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .coordinator import ETODataUpdateCoordinator
     from .data import ETOConfigEntry
@@ -40,7 +45,17 @@ if TYPE_CHECKING:
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key="eto_test",
-        name="Zone Run Time Duration",
+        name="ETO Run Time",
+        icon="mdi:sprinkler",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+)
+WEATHER_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key=ATTR_API_RUNTIME,
+        name="ETO Run Time",
         icon="mdi:sprinkler",
         native_unit_of_measurement=UnitOfTime.SECONDS,
         device_class=SensorDeviceClass.DURATION,
@@ -52,30 +67,88 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: ETOConfigEntry,
+    config_entry: ETOConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
-    async_add_entities(
+    domain_data = config_entry.runtime_data
+    name = domain_data.name
+    weather_coordinator = domain_data.coordinator
+
+    entities: list[AbstractETOSensor] = [
         ETOSensor(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
+            name,
+            f"{name}-{description.key}",
+            description,
+            weather_coordinator,
         )
-        for entity_description in ENTITY_DESCRIPTIONS
-    )
+        for description in WEATHER_SENSOR_TYPES
+    ]
+    async_add_entities(entities)
 
 
-class ETOSensor(ETOEntity, SensorEntity):
+class AbstractETOSensor(SensorEntity):
+    """Abstract class for an OpenWeatherMap sensor."""
+
+    _attr_should_poll = False
+    _attr_attribution = ATTRIBUTION
+
+    def __init__(
+        self,
+        name: str,
+        unique_id: str,
+        description: SensorEntityDescription,
+        coordinator: DataUpdateCoordinator,
+    ) -> None:
+        """Initialize the sensor."""
+        self.entity_description = description
+        self._coordinator = coordinator
+
+        self._attr_name = f"{name} {description.name}"
+        self._attr_unique_id = unique_id
+        split_unique_id = unique_id.split("-")
+        _LOGGER.debug(
+            "_attr_name=%s, _attr_unique_id=%s, split_unique_id=%s",
+            self._attr_name,
+            self._attr_unique_id,
+            split_unique_id,
+        )
+        self._attr_device_info = DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, f"{split_unique_id[0]}-{split_unique_id[1]}")},
+            manufacturer=MANUFACTURER,
+            name=DEFAULT_NAME,
+        )
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self._coordinator.last_update_success
+
+    async def async_added_to_hass(self) -> None:
+        """Connect to dispatcher listening for entity data notifications."""
+        self.async_on_remove(
+            self._coordinator.async_add_listener(self.async_write_ha_state)
+        )
+
+    async def async_update(self) -> None:
+        """Get the latest data from OWM and updates the states."""
+        await self._coordinator.async_request_refresh()
+
+
+class ETOSensor(AbstractETOSensor):
     """eto_test Sensor class."""
 
     def __init__(
         self,
-        coordinator: ETODataUpdateCoordinator,
+        name: str,
+        unique_id: str,
         entity_description: SensorEntityDescription,
+        coordinator: ETODataUpdateCoordinator,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(coordinator)
-        self.entity_description = entity_description
+        super().__init__(name, unique_id, entity_description, coordinator)
+        self.coordinator = coordinator
 
     @property
     def native_value(self) -> str | None:
@@ -94,14 +167,15 @@ class ETOSensor(ETOEntity, SensorEntity):
             attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
             attributes[CONF_HUMIDITY_MIN] = self.coordinator.data[CONF_HUMIDITY_MIN]
             attributes[CONF_HUMIDITY_MAX] = self.coordinator.data[CONF_HUMIDITY_MAX]
-            attributes[CONF_RAIN] = self.coordinator.data[CONF_RAIN].round(1)
-            attributes[CONF_WIND] = self.coordinator.data[CONF_WIND].round(1)
+            attributes[CONF_RAIN] = round(self.coordinator.data[CONF_RAIN], 1)
+            attributes[CONF_WIND] = round(self.coordinator.data[CONF_WIND], 1)
             attributes[CONF_ALBEDO] = self.coordinator.data[CONF_ALBEDO]
             attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
-            attributes[CONF_SPRINKLER_THROUGHPUT] = self.coordinator.data[CONF_SPRINKLER_THROUGHPUT]  # noqa: E501
-            attributes[CALC_FSETO_35] = self.coordinator.data[CALC_FSETO_35].round(2)
-
+            attributes[CONF_SPRINKLER_THROUGHPUT] = self.coordinator.data[
+                CONF_SPRINKLER_THROUGHPUT
+            ]  # noqa: E501
+            attributes[CALC_FSETO_35] = round(self.coordinator.data[CALC_FSETO_35], 2)
         except ETOApiClientError as ex:
             _LOGGER.exception(ex)  # noqa: TRY401
 

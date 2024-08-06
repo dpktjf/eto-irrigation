@@ -5,7 +5,10 @@ from logging import Logger, getLogger
 LOGGER: Logger = getLogger(__package__)
 
 DOMAIN = "eto_test"
-ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
+DEFAULT_NAME = "ETO Zone"
+ATTRIBUTION = "Data provided by OWM and calculations"
+MANUFACTURER = "DPK"
+CONFIG_FLOW_VERSION = 1
 
 DEFAULT_NAME = "ETO"
 DEFAULT_RETRY = 60
@@ -24,7 +27,7 @@ CONF_SPRINKLER_THROUGHPUT = "sprinkler_throughput"
 CONF_DOY = "day_of_year"
 
 # additional attributes
-
+ATTR_API_RUNTIME = "eto_runtime"
 
 # calculation factors
 CALC_S1_5 = "calc_mean_daily_temp_Tmean"

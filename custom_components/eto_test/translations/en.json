@@ -1,10 +1,37 @@
 {
     "config": {
+        "abort": {
+            "already_configured": "[%key:common::config_flow::abort::already_configured_location%]"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect: {error}",
+            "auth": "Username/Password is wrong.",
+            "connection": "Unable to connect to the server.",
+            "unknown": "Unknown error occurred."
+        },
         "step": {
             "user": {
-                "description": "This is a test",
                 "data": {
-                    "name": "Name",
+                    "name": "Zone Name",
+                    "temp_min": "Min Temp",
+                    "temp_max": "Max Temp",
+                    "humidity_min": "Min Humidity",
+                    "humidity_max": "Max Humidity",
+                    "pressure": "Pressure",
+                    "wind": "Wind",
+                    "rain": "Rain",
+                    "albedo": "Albedo",
+                    "solar_rad": "Solar Rad",
+                    "sprinkler_throughput": "Sprinkler Throughput"
+                },
+                "description": "This is am insert test"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
                     "temp_min": "Min Temp",
                     "temp_max": "Max Temp",
                     "humidity_min": "Min Humidity",
@@ -17,11 +44,7 @@
                     "sprinkler_throughput": "Sprinkler Throughput"
                 }
             }
-        },
-        "error": {
-            "auth": "Username/Password is wrong.",
-            "connection": "Unable to connect to the server.",
-            "unknown": "Unknown error occurred."
         }
-    }
+    },
+    "issues": {}
 }
