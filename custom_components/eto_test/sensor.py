@@ -115,7 +115,7 @@ class AbstractETOSensor(SensorEntity):
         )
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, f"{split_unique_id[0]}-{split_unique_id[1]}")},
+            identifiers={(DOMAIN, f"{split_unique_id[0]}.lower()")},
             manufacturer=MANUFACTURER,
             name=DEFAULT_NAME,
         )

@@ -7,14 +7,6 @@ homeassistant:
 
 template: !include templates.yaml
 
-eto_test:
-  - name: side
-    temp_min: 'sensor.pi07_temp_drive_min'
-    temp_max: 'sensor.pi07_temp_drive_max'
-  - name: back
-    temp_min: 'sensor.pi07_temp_drive_min'
-    temp_max: 'sensor.pi07_temp_drive_max'
-
 
 # https://www.home-assistant.io/integrations/logger/
 logger:

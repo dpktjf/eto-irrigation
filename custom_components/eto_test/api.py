@@ -18,6 +18,12 @@ from homeassistant.const import (
 )
 from homeassistant.util.unit_conversion import SpeedConverter
 
+from custom_components.eto_test.data import ETOConfigEntry
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 from custom_components.eto_test.api_helpers import (
     atm_pressure,
     c_to_k,
@@ -128,6 +134,20 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     response.raise_for_status()
 
 
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ETOConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up OpenWeatherMap weather entity based on a config entry."""
+    domain_data = config_entry.runtime_data
+    name = domain_data.name
+    weather_coordinator = domain_data.coordinator
+
+    unique_id = f"{config_entry.unique_id}"
+    _LOGGER.debug("async_setup_entry - unique_id=%s", unique_id)
+
+
 class ETOApiClient:
     """Sample API Client."""
 
@@ -167,6 +187,10 @@ class ETOApiClient:
         self._calc_data[CONF_LATITUDE] = latitude
         self._calc_data[CONF_LONGITUDE] = longitude
         _LOGGER.debug("temp min/max=%s/%s", self._temp_min, self._temp_max)
+
+    def __str__(self) -> str:
+        """Pretty print."""
+        return f"temp min/max = {self._temp_min}/{self._temp_min}"
 
     async def _get(self, ent: str) -> float:
         st = self._states.get(ent)

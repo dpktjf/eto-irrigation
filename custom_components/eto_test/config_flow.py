@@ -61,11 +61,13 @@ class ETOConfigFlow(ConfigFlow, domain=DOMAIN):
         description_placeholders = {}
 
         if user_input is not None:
-            await self.async_set_unique_id(user_input[CONF_NAME])
+            await self.async_set_unique_id(user_input[CONF_NAME].lower())
             self._abort_if_unique_id_configured()
 
             data, options = build_data_and_options(user_input)
-            _LOGGER.debug("data=%s ,options=%s", data, options)
+            _LOGGER.debug(
+                "data=%s ,options=%s, user_input=%s", data, options, user_input
+            )
             return self.async_create_entry(
                 title=user_input[CONF_NAME], data=user_input, options={}
             )
@@ -109,6 +111,9 @@ class ETOOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
+            _LOGGER.debug(
+                "async_step_init: %s, config_entry=%s", user_input, self.config_entry
+            )
             return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
