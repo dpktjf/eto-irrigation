@@ -211,11 +211,11 @@ class ETOApiClient:
             self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
             self._calc_data[CONF_SPRINKLER_THROUGHPUT] = await self._get(
                 self._sprinkler
-            )  # noqa: E501
+            )
 
             await self.calc_eto()
             self._calc_data[CALC_DURATION] = calc_duration(
-                self._calc_data[CALC_FSETO_35],  # noqa: E501
+                self._calc_data[CALC_FSETO_35],
                 self._calc_data[CONF_RAIN],
                 self._calc_data[CONF_SPRINKLER_THROUGHPUT],
             )

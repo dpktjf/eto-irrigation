@@ -11,8 +11,6 @@ import logging
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant.const import (
     CONF_NAME,
     # CONF_SCAN_INTERVAL,
@@ -31,15 +29,12 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
-    DEFAULT_NAME,
-    DOMAIN,
 )
 from .coordinator import ETODataUpdateCoordinator
 from .data import ETOData
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.typing import ConfigType
 
     from .data import ETOConfigEntry
 

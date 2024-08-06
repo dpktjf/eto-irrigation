@@ -174,7 +174,7 @@ class ETOSensor(AbstractETOSensor):
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
             attributes[CONF_SPRINKLER_THROUGHPUT] = self.coordinator.data[
                 CONF_SPRINKLER_THROUGHPUT
-            ]  # noqa: E501
+            ]
             attributes[CALC_FSETO_35] = round(self.coordinator.data[CALC_FSETO_35], 2)
         except ETOApiClientError as ex:
             _LOGGER.exception(ex)  # noqa: TRY401

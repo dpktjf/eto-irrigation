@@ -2,8 +2,6 @@
 
 from typing import Any
 
-from custom_components.eto_test.const import CONF_TEMP_MAX, CONF_TEMP_MIN
-
 OPTION_DEFAULTS = {}
 
 
