@@ -496,6 +496,7 @@ def eto(wind_term: float, rad_term: float) -> float:
     # raise ValueError("test error")  # noqa: ERA001
     return wind_term + rad_term
 
+
 def calc_duration(eto: float, rain: float, throughput: float) -> int:
     """
     Calculate runtime duration in seconds.
