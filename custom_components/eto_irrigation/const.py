@@ -1,14 +1,14 @@
-"""Constants for eto_test."""
+"""Constants for eto_irrigation."""
 
 from logging import Logger, getLogger
 
 LOGGER: Logger = getLogger(__package__)
 
-DOMAIN = "eto_test"
+DOMAIN = "eto_irrigation"
 DEFAULT_NAME = "ETO Zone"
 ATTRIBUTION = "Data provided by OWM and calculations"
 MANUFACTURER = "DPK"
-CONFIG_FLOW_VERSION = 2
+CONFIG_FLOW_VERSION = 1
 
 DEFAULT_NAME = "ETO"
 DEFAULT_RETRY = 60

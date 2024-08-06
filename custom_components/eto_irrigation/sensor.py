@@ -1,4 +1,4 @@
-"""Sensor platform for eto_test."""
+"""Sensor platform for eto_irrigation."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from homeassistant.components.sensor.const import SensorDeviceClass, SensorState
 from homeassistant.const import UnitOfTime
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from custom_components.eto_test.api import ETOApiClientError
-from custom_components.eto_test.const import (
+from custom_components.eto_irrigation.api import ETOApiClientError
+from custom_components.eto_irrigation.const import (
     ATTR_API_RUNTIME,
     ATTRIBUTION,
     CALC_DURATION,
@@ -121,7 +121,7 @@ class AbstractETOSensor(SensorEntity):
 
 
 class ETOSensor(AbstractETOSensor):
-    """eto_test Sensor class."""
+    """eto_irrigation Sensor class."""
 
     def __init__(
         self,

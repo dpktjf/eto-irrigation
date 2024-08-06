@@ -1,8 +1,8 @@
 """
-Custom integration to integrate eto_test with Home Assistant.
+Custom integration to integrate eto_irrigation with Home Assistant.
 
 For more details about this integration, please refer to
-https://github.com/dpktjf/eto-test
+https://github.com/dpktjf/eto-irrigation
 """
 
 from __future__ import annotations

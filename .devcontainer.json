@@ -1,5 +1,5 @@
 {
-    "name": "dpktjf/eto_test",
+    "name": "dpktjf/eto_irrigation",
     "image": "mcr.microsoft.com/devcontainers/python:3.12",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [

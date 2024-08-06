@@ -1,4 +1,4 @@
-"""Custom types for eto_test."""
+"""Custom types for eto_irrigation."""
 
 from __future__ import annotations
 

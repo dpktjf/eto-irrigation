@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for eto_test."""
+"""DataUpdateCoordinator for eto_irrigation."""
 
 from __future__ import annotations
 
