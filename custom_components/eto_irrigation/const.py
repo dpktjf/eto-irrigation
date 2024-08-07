@@ -20,10 +20,8 @@ CONF_TEMP_MAX = "temp_max"
 CONF_HUMIDITY_MIN = "humidity_min"
 CONF_HUMIDITY_MAX = "humidity_max"
 CONF_WIND = "wind"
-CONF_RAIN = "rain"
 CONF_SOLAR_RAD = "solar_rad"
 CONF_ALBEDO = "albedo"
-CONF_SPRINKLER_THROUGHPUT = "sprinkler_throughput"
 CONF_DOY = "day_of_year"
 
 # additional attributes
@@ -56,7 +54,6 @@ CALC_S19_32 = "calc_net_radiation_eto_Rng"
 CALC_FS_33 = "calc_radiation_term_ETrad"
 CALC_FS_34 = "calc_wind_term_ETwind"
 CALC_FSETO_35 = "calc_evapotranspiration_ETo"
-CALC_DURATION = "zone_duration"
 
 # OTHER FACTORS
 W_TO_MJ_DAY_FACTOR = 0.0864  # w * factor = mj/day, same for w/m2 to mj/day/m2

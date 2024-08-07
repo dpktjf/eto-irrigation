@@ -25,9 +25,7 @@ from .const import (
     CONF_ALBEDO,
     CONF_HUMIDITY_MAX,
     CONF_HUMIDITY_MIN,
-    CONF_RAIN,
     CONF_SOLAR_RAD,
-    CONF_SPRINKLER_THROUGHPUT,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
@@ -73,10 +71,8 @@ class ETOConfigFlow(ConfigFlow, domain=DOMAIN):
                         vol.Required(CONF_HUMIDITY_MIN): entity_selector,
                         vol.Required(CONF_HUMIDITY_MAX): entity_selector,
                         vol.Required(CONF_WIND): entity_selector,
-                        vol.Required(CONF_RAIN): entity_selector,
                         vol.Required(CONF_SOLAR_RAD): entity_selector,
                         vol.Required(CONF_ALBEDO): entity_selector,
-                        vol.Required(CONF_SPRINKLER_THROUGHPUT): entity_selector,
                     }
                 ),
             )
@@ -133,18 +129,11 @@ class ETOOptionsFlow(OptionsFlow):
                         CONF_WIND, default=self.config_entry.options[CONF_WIND]
                     ): entity_selector,
                     vol.Required(
-                        CONF_RAIN, default=self.config_entry.options[CONF_RAIN]
-                    ): entity_selector,
-                    vol.Required(
                         CONF_SOLAR_RAD,
                         default=self.config_entry.options[CONF_SOLAR_RAD],
                     ): entity_selector,
                     vol.Required(
                         CONF_ALBEDO, default=self.config_entry.options[CONF_ALBEDO]
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_SPRINKLER_THROUGHPUT,
-                        default=self.config_entry.options[CONF_SPRINKLER_THROUGHPUT],
                     ): entity_selector,
                 }
             ),

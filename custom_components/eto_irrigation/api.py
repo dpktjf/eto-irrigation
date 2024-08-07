@@ -21,7 +21,6 @@ from homeassistant.util.unit_conversion import SpeedConverter
 from custom_components.eto_irrigation.api_helpers import (
     atm_pressure,
     c_to_k,
-    calc_duration,
     cs_rad,
     deg2rad,
     delta_svp,
@@ -45,7 +44,6 @@ from custom_components.eto_irrigation.api_helpers import (
     wind_term,
 )
 from custom_components.eto_irrigation.const import (
-    CALC_DURATION,
     CALC_FS_33,
     CALC_FS_34,
     CALC_FSETO_35,
@@ -76,9 +74,7 @@ from custom_components.eto_irrigation.const import (
     CONF_DOY,
     CONF_HUMIDITY_MAX,
     CONF_HUMIDITY_MIN,
-    CONF_RAIN,
     CONF_SOLAR_RAD,
-    CONF_SPRINKLER_THROUGHPUT,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
@@ -142,10 +138,8 @@ class ETOApiClient:
         humidity_min: str,
         humidity_max: str,
         wind: str,
-        rain: str,
         solar_rad: str,
         albedo: str,
-        sprinkler: str,
         session: aiohttp.ClientSession,
         states: StateMachine,
     ) -> None:
@@ -156,10 +150,8 @@ class ETOApiClient:
         self._humidity_min = humidity_min
         self._humidity_max = humidity_max
         self._wind = wind
-        self._rain = rain
         self._solar_rad = solar_rad
         self._albedo = albedo
-        self._sprinkler = sprinkler
         self._session = session
         self._states = states
         self._calc_data = {}
@@ -208,20 +200,18 @@ class ETOApiClient:
                 UnitOfSpeed.KILOMETERS_PER_HOUR,
                 UnitOfSpeed.METERS_PER_SECOND,
             )
-            self._calc_data[CONF_RAIN] = await self._get(self._rain)
             self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
             self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
             self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
-            self._calc_data[CONF_SPRINKLER_THROUGHPUT] = await self._get(
-                self._sprinkler
-            )
 
             await self.calc_eto()
+            """
             self._calc_data[CALC_DURATION] = calc_duration(
                 self._calc_data[CALC_FSETO_35],
                 self._calc_data[CONF_RAIN],
                 self._calc_data[CONF_SPRINKLER_THROUGHPUT],
             )
+            """
             """
                 delta = precip - eto : < 0 means irrigation required
                 precip_rate = throughput(LPH) / size(M2)

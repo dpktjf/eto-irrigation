@@ -10,22 +10,19 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfTime
+from homeassistant.const import UnitOfLength
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from custom_components.eto_irrigation.api import ETOApiClientError
 from custom_components.eto_irrigation.const import (
     ATTR_API_RUNTIME,
     ATTRIBUTION,
-    CALC_DURATION,
     CALC_FSETO_35,
     CONF_ALBEDO,
     CONF_DOY,
     CONF_HUMIDITY_MAX,
     CONF_HUMIDITY_MIN,
-    CONF_RAIN,
     CONF_SOLAR_RAD,
-    CONF_SPRINKLER_THROUGHPUT,
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_WIND,
@@ -42,13 +39,13 @@ if TYPE_CHECKING:
     from .coordinator import ETODataUpdateCoordinator
     from .data import ETOConfigEntry
 
-WEATHER_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
+SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_API_RUNTIME,
-        name="ETO Run Time",
-        icon="mdi:sprinkler",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-        device_class=SensorDeviceClass.DURATION,
+        name="ETO",
+        icon="mdi:weather-pouring",
+        native_unit_of_measurement=UnitOfLength.MILLIMETERS,
+        device_class=SensorDeviceClass.PRECIPITATION,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
@@ -72,7 +69,7 @@ async def async_setup_entry(
             description,
             weather_coordinator,
         )
-        for description in WEATHER_SENSOR_TYPES
+        for description in SENSOR_TYPES
     ]
     async_add_entities(entities)
 
@@ -137,7 +134,7 @@ class ETOSensor(AbstractETOSensor):
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
-        return self.coordinator.data[CALC_DURATION]
+        return self.coordinator.data[CALC_FSETO_35]
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -149,15 +146,10 @@ class ETOSensor(AbstractETOSensor):
             attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
             attributes[CONF_HUMIDITY_MIN] = self.coordinator.data[CONF_HUMIDITY_MIN]
             attributes[CONF_HUMIDITY_MAX] = self.coordinator.data[CONF_HUMIDITY_MAX]
-            attributes[CONF_RAIN] = round(self.coordinator.data[CONF_RAIN], 1)
             attributes[CONF_WIND] = round(self.coordinator.data[CONF_WIND], 1)
             attributes[CONF_ALBEDO] = self.coordinator.data[CONF_ALBEDO]
             attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
-            attributes[CONF_SPRINKLER_THROUGHPUT] = self.coordinator.data[
-                CONF_SPRINKLER_THROUGHPUT
-            ]
-            attributes[CALC_FSETO_35] = round(self.coordinator.data[CALC_FSETO_35], 2)
         except ETOApiClientError as ex:
             _LOGGER.exception(ex)  # noqa: TRY401
 

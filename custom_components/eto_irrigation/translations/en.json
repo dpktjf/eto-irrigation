@@ -19,10 +19,8 @@
                     "humidity_max": "Max Humidity",
                     "pressure": "Pressure",
                     "wind": "Wind",
-                    "rain": "Rain",
                     "albedo": "Albedo",
-                    "solar_rad": "Solar Rad",
-                    "sprinkler_throughput": "Sprinkler Throughput"
+                    "solar_rad": "Solar Rad"
                 },
                 "description": "Configure the watering zone"
             }
@@ -38,10 +36,8 @@
                     "humidity_max": "Max Humidity",
                     "pressure": "Pressure",
                     "wind": "Wind",
-                    "rain": "Rain",
                     "albedo": "Albedo",
-                    "solar_rad": "Solar Rad",
-                    "sprinkler_throughput": "Sprinkler Throughput"
+                    "solar_rad": "Solar Rad"
                 }
             }
         }

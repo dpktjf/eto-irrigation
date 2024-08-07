@@ -494,7 +494,7 @@ def eto(wind_term: float, rad_term: float) -> float:
     :rtype: float
     """
     # raise ValueError("test error")  # noqa: ERA001
-    return wind_term + rad_term
+    return round(wind_term + rad_term, 1)
 
 
 def calc_duration(eto: float, rain: float, throughput: float) -> int:
