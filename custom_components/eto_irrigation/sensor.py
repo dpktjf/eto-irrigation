@@ -154,6 +154,6 @@ class ETOSensor(AbstractETOSensor):
             attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
         except ETOApiClientError as ex:
-            _LOGGER.exception(ex)  # noqa: TRY401
+            _LOGGER.exception(ex)
 
         return attributes
