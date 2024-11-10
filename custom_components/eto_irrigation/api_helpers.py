@@ -1,6 +1,5 @@
 """The Smart Irrigation Integration."""
 
-import logging
 import math
 
 from numpy import floating, mean
@@ -10,8 +9,6 @@ from custom_components.eto_irrigation.const import (
     SOLAR_CONSTANT,
     STEFAN_BOLTZMANN_CONSTANT,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def c_to_k(celcius: float) -> float:

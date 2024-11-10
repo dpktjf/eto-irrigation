@@ -7,7 +7,6 @@ https://github.com/dpktjf/eto-irrigation
 
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
@@ -16,7 +15,7 @@ from homeassistant.const import (
     # CONF_SCAN_INTERVAL,
     Platform,
 )
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import async_track_state_change_event
 
 from .api import ETOApiClient
 from .const import (
@@ -44,8 +43,6 @@ PLATFORMS: list[Platform] = [
 
 # https://homeassistantapi.readthedocs.io/en/latest/api.html
 
-_LOGGER = logging.getLogger(__name__)
-
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 
 
@@ -62,18 +59,38 @@ async def async_setup_entry(
         latitude=hass.config.latitude,
         longitude=hass.config.longitude,
         elevation=hass.config.elevation,
-        temp_min=entry.options[CONF_TEMP_MIN],
-        temp_max=entry.options[CONF_TEMP_MAX],
-        humidity_min=entry.options[CONF_HUMIDITY_MIN],
-        humidity_max=entry.options[CONF_HUMIDITY_MAX],
-        wind=entry.options[CONF_WIND],
-        solar_rad=entry.options[CONF_SOLAR_RAD],
-        albedo=entry.options[CONF_ALBEDO],
-        session=async_get_clientsession(hass),
-        states=hass.states,
+        config=entry,
     )
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     coordinator = ETODataUpdateCoordinator(eto_api, hass)
+
+    _min_temp = entry.options.get(CONF_TEMP_MIN)
+    _max_temp = entry.options.get(CONF_TEMP_MAX)
+    _min_hum = entry.options.get(CONF_HUMIDITY_MIN)
+    _max_hum = entry.options.get(CONF_HUMIDITY_MAX)
+    _wind = entry.options.get(CONF_WIND)
+    _solar_rad = entry.options.get(CONF_SOLAR_RAD)
+    _albedo = entry.options.get(CONF_ALBEDO)
+    _entities = []
+    for entity in [
+        _min_temp,
+        _max_temp,
+        _min_hum,
+        _max_hum,
+        _wind,
+        _solar_rad,
+        _albedo,
+    ]:
+        if entity is not None:
+            _entities.append(entity)  # noqa: PERF401
+    entry.async_on_unload(
+        async_track_state_change_event(
+            hass,
+            _entities,
+            coordinator.async_check_entity_state_change,
+        )
+    )
+
     await coordinator.async_config_entry_first_refresh()
 
     entry.async_on_unload(entry.add_update_listener(async_update_options))

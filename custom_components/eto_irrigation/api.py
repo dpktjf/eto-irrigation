@@ -3,13 +3,9 @@
 from __future__ import annotations
 
 import datetime
-import logging
-import socket
 from statistics import mean
 from typing import TYPE_CHECKING, Any
 
-import aiohttp
-import async_timeout
 from homeassistant.const import (
     CONF_ELEVATION,
     CONF_LATITUDE,
@@ -43,7 +39,9 @@ from custom_components.eto_irrigation.api_helpers import (
     wind_speed,
     wind_term,
 )
-from custom_components.eto_irrigation.const import (
+
+from .const import (
+    _LOGGER,
     CALC_FS_33,
     CALC_FS_34,
     CALC_FSETO_35,
@@ -81,9 +79,7 @@ from custom_components.eto_irrigation.const import (
 )
 
 if TYPE_CHECKING:
-    from homeassistant.core import StateMachine
-
-_LOGGER = logging.getLogger(__name__)
+    from .data import ETOConfigEntry
 
 
 class ETOApiClientError(Exception):
@@ -114,69 +110,45 @@ class ETOApiClientCalculationStartupError(
     """Exception to indicate a calculation error - probably due to start-up ."""
 
 
-def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
-    """Verify that the response is valid."""
-    if response.status in (401, 403):
-        msg = "Invalid credentials"
-        raise ETOApiClientAuthenticationError(
-            msg,
-        )
-    response.raise_for_status()
-
-
 class ETOApiClient:
     """Sample API Client."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         name: str,
         latitude: float,
         longitude: float,
         elevation: float,
-        temp_min: str,
-        temp_max: str,
-        humidity_min: str,
-        humidity_max: str,
-        wind: str,
-        solar_rad: str,
-        albedo: str,
-        session: aiohttp.ClientSession,
-        states: StateMachine,
+        config: ETOConfigEntry,
     ) -> None:
         """Sample API Client."""
         self._name = name
-        self._temp_min = temp_min
-        self._temp_max = temp_max
-        self._humidity_min = humidity_min
-        self._humidity_max = humidity_max
-        self._wind = wind
-        self._solar_rad = solar_rad
-        self._albedo = albedo
-        self._session = session
-        self._states = states
+        self._entities = {}
+        self._entities[config.options[CONF_TEMP_MIN]] = None
+        self._entities[config.options[CONF_TEMP_MAX]] = None
+        self._entities[config.options[CONF_HUMIDITY_MIN]] = None
+        self._entities[config.options[CONF_HUMIDITY_MAX]] = None
+        self._entities[config.options[CONF_WIND]] = None
+        self._entities[config.options[CONF_SOLAR_RAD]] = None
+        self._entities[config.options[CONF_ALBEDO]] = None
         self._calc_data = {}
         self._calc_data[CONF_ELEVATION] = elevation
         self._calc_data[CONF_LATITUDE] = latitude
         self._calc_data[CONF_LONGITUDE] = longitude
+        self._calc_data[CONF_TEMP_MIN] = None
+        self._calc_data[CONF_TEMP_MAX] = None
+        self._calc_data[CONF_HUMIDITY_MIN] = None
+        self._calc_data[CONF_HUMIDITY_MAX] = None
+        self._calc_data[CONF_WIND] = None
+        self._calc_data[CONF_SOLAR_RAD] = None
+        self._calc_data[CONF_ALBEDO] = None
+        self._calc_data[CONF_DOY] = None
+        self._calc_data[CALC_FSETO_35] = None
+        self._config = config
 
-    def __str__(self) -> str:
-        """Pretty print."""
-        return f"temp min/max = {self._temp_min}/{self._temp_max}"
-
-    async def _get(self, ent: str) -> float:
-        st = self._states.get(ent)
-        #        if st is not None and isinstance(st.state, float):
-        if st is not None:
-            if st.state == "unknown":
-                msg = "State unknown; probably starting up???"
-                raise ETOApiClientCalculationStartupError(
-                    msg,
-                )
-            return float(st.state)
-        msg = "States not yet available; probably starting up???"
-        raise ETOApiClientCalculationError(
-            msg,
-        )
+    async def entity_update(self, entity_id: str, new_state: float) -> None:
+        """Update to an entity pushed."""
+        self._entities[entity_id] = new_state
 
     async def collect_calculation_data(self) -> None:
         """
@@ -185,38 +157,51 @@ class ETOApiClient:
         Convert into the correct units for calculation.
         """
         # https://developers.home-assistant.io/docs/core/entity/sensor
+        if (
+            self._entities[self._config.options[CONF_TEMP_MIN]] is None
+            or self._entities[self._config.options[CONF_TEMP_MAX]] is None
+            or self._entities[self._config.options[CONF_HUMIDITY_MIN]] is None
+            or self._entities[self._config.options[CONF_HUMIDITY_MAX]] is None
+            or self._entities[self._config.options[CONF_WIND]] is None
+            or self._entities[self._config.options[CONF_SOLAR_RAD]] is None
+            or self._entities[self._config.options[CONF_ALBEDO]] is None
+        ):
+            _LOGGER.debug("no data yet")
+            return
+
         try:
-            self._calc_data[CONF_TEMP_MIN] = await self._get(self._temp_min)
-            self._calc_data[CONF_TEMP_MAX] = await self._get(self._temp_max)
+            self._calc_data[CONF_TEMP_MIN] = self._entities[
+                self._config.options[CONF_TEMP_MIN]
+            ]
+            self._calc_data[CONF_TEMP_MAX] = self._entities[
+                self._config.options[CONF_TEMP_MAX]
+            ]
+            _LOGGER.debug(
+                "temp min/max = %s/%s",
+                self._calc_data[CONF_TEMP_MIN],
+                self._calc_data[CONF_TEMP_MAX],
+            )
             self._calc_data[CONF_HUMIDITY_MIN] = (
-                await self._get(self._humidity_min) / 100
+                self._entities[self._config.options[CONF_HUMIDITY_MIN]] / 100
             )
             self._calc_data[CONF_HUMIDITY_MAX] = (
-                await self._get(self._humidity_max) / 100
+                self._entities[self._config.options[CONF_HUMIDITY_MAX]] / 100
             )
-            self._calc_data[CONF_WIND] = await self._get(self._wind)
+            self._calc_data[CONF_WIND] = self._entities[self._config.options[CONF_WIND]]
             self._calc_data[CONF_WIND] = SpeedConverter.convert(
                 self._calc_data[CONF_WIND],
                 UnitOfSpeed.KILOMETERS_PER_HOUR,
                 UnitOfSpeed.METERS_PER_SECOND,
             )
-            self._calc_data[CONF_SOLAR_RAD] = await self._get(self._solar_rad)
-            self._calc_data[CONF_ALBEDO] = await self._get(self._albedo)
+            self._calc_data[CONF_SOLAR_RAD] = self._entities[
+                self._config.options[CONF_SOLAR_RAD]
+            ]
+            self._calc_data[CONF_ALBEDO] = self._entities[
+                self._config.options[CONF_ALBEDO]
+            ]
             self._calc_data[CONF_DOY] = datetime.datetime.now().timetuple().tm_yday  # noqa: DTZ005
 
             await self.calc_eto()
-            """
-            self._calc_data[CALC_DURATION] = calc_duration(
-                self._calc_data[CALC_FSETO_35],
-                self._calc_data[CONF_RAIN],
-                self._calc_data[CONF_SPRINKLER_THROUGHPUT],
-            )
-            """
-            """
-                delta = precip - eto : < 0 means irrigation required
-                precip_rate = throughput(LPH) / size(M2)
-                duration = abs(delta) / precip_rate * 3600
-            """
 
             _LOGGER.debug("collect_calculation_data: %s", self._calc_data)
         except ValueError as exception:
@@ -236,50 +221,6 @@ class ETOApiClient:
         """Get data from the API."""
         await self.collect_calculation_data()
         return self._calc_data
-
-    async def async_set_title(self, value: str) -> Any:
-        """Get data from the API."""
-        return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"title": value},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
-
-    async def _api_wrapper(
-        self,
-        method: str,
-        url: str,
-        data: dict | None = None,
-        headers: dict | None = None,
-    ) -> Any:
-        """Get information from the API."""
-        try:
-            async with async_timeout.timeout(10):
-                response = await self._session.request(
-                    method=method,
-                    url=url,
-                    headers=headers,
-                    json=data,
-                )
-                _verify_response_or_raise(response)
-                return await response.json()
-
-        except TimeoutError as exception:
-            msg = f"Timeout error fetching information - {exception}"
-            raise ETOApiClientCommunicationError(
-                msg,
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            msg = f"Error fetching information - {exception}"
-            raise ETOApiClientCommunicationError(
-                msg,
-            ) from exception
-        except Exception as exception:  # pylint: disable=broad-except
-            msg = f"Something really wrong happened! - {exception}"
-            raise ETOApiClientError(
-                msg,
-            ) from exception
 
     async def calc_eto(self) -> None:
         """Perform ETO calculation."""

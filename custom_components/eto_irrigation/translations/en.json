@@ -1,49 +1,63 @@
 {
     "config": {
-        "abort": {
-            "already_configured": "Zone already configured"
-        },
         "error": {
             "already_configured": "ETO already configured",
-            "cannot_connect": "Failed to connect: {error}",
-            "auth": "Username/Password is wrong.",
-            "connection": "Unable to connect to the server.",
             "unknown": "Unknown error occurred."
         },
         "step": {
             "user": {
+                "description": "Configure evapotranspiration calculations",
                 "data": {
-                    "name": "Zone Name"
+                    "name": "ETO Configuration"
                 },
-                "description": "Configure the watering zone"
+                "data_description": {
+                    "name": "Calculation name"
+                }
             },
-            "eto": {
+            "init": {
+                "description": "Configure evapotranspiration calculations",
                 "data": {
-                    "temp_min": "Min Temp",
+                    "temp_min": "Min Temp Entity",
                     "temp_max": "Max Temp",
                     "humidity_min": "Min Humidity",
                     "humidity_max": "Max Humidity",
-                    "pressure": "Pressure",
                     "wind": "Wind",
                     "albedo": "Albedo",
-                    "solar_rad": "Solar Rad"
+                    "solar_rad": "Solar Radiation"
                 },
-                "description": "Configure the watering zone"
+                "data_description": {
+                    "temp_min": "Select entity containing the min temperature over last 24h",
+                    "temp_max": "Select entity containing the max temperature over last 24h",
+                    "humidity_min": "Select entity containing the min humidity over last 24h",
+                    "humidity_max": "Select entity containing the max humidity over last 24h",
+                    "wind": "Select entity containing the average wind speed over last 24h",
+                    "albedo": "Select entity containing the proportion of light or radiation reflected by the garden",
+                    "solar_rad": "Select entity containing the current solar radiation value in W/m²"
+                }
             }
         }
     },
     "options": {
         "step": {
-            "eto": {
+            "init": {
+                "description": "Configure evapotranspiration calculations",
                 "data": {
-                    "temp_min": "Min Temp",
+                    "temp_min": "Min Temp Entity",
                     "temp_max": "Max Temp",
                     "humidity_min": "Min Humidity",
                     "humidity_max": "Max Humidity",
-                    "pressure": "Pressure",
                     "wind": "Wind",
                     "albedo": "Albedo",
-                    "solar_rad": "Solar Rad"
+                    "solar_rad": "Solar Radiation"
+                },
+                "data_description": {
+                    "temp_min": "Select entity containing the min temperature over last 24h",
+                    "temp_max": "Select entity containing the max temperature over last 24h",
+                    "humidity_min": "Select entity containing the min humidity over last 24h",
+                    "humidity_max": "Select entity containing the max humidity over last 24h",
+                    "wind": "Select entity containing the average wind speed over last 24h",
+                    "albedo": "Select entity containing the proportion of light or radiation reflected by the garden",
+                    "solar_rad": "Select entity containing the current solar radiation value in W/m²"
                 }
             }
         }

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
@@ -13,8 +12,9 @@ from homeassistant.components.sensor.const import SensorDeviceClass, SensorState
 from homeassistant.const import UnitOfLength
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from custom_components.eto_irrigation.api import ETOApiClientError
-from custom_components.eto_irrigation.const import (
+from .api import ETOApiClientError
+from .const import (
+    _LOGGER,
     ATTR_API_RUNTIME,
     ATTRIBUTION,
     CALC_FSETO_35,
@@ -49,7 +49,6 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -146,7 +145,11 @@ class ETOSensor(AbstractETOSensor):
             attributes[CONF_TEMP_MAX] = self.coordinator.data[CONF_TEMP_MAX]
             attributes[CONF_HUMIDITY_MIN] = self.coordinator.data[CONF_HUMIDITY_MIN]
             attributes[CONF_HUMIDITY_MAX] = self.coordinator.data[CONF_HUMIDITY_MAX]
-            attributes[CONF_WIND] = round(self.coordinator.data[CONF_WIND], 1)
+            attributes[CONF_WIND] = (
+                None
+                if self.coordinator.data[CONF_WIND] is None
+                else round(self.coordinator.data[CONF_WIND], 1)
+            )
             attributes[CONF_ALBEDO] = self.coordinator.data[CONF_ALBEDO]
             attributes[CONF_SOLAR_RAD] = self.coordinator.data[CONF_SOLAR_RAD]
             attributes[CONF_DOY] = self.coordinator.data[CONF_DOY]
