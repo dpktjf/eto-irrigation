@@ -4,6 +4,7 @@
             "already_configured": "Zone already configured"
         },
         "error": {
+            "already_configured": "ETO already configured",
             "cannot_connect": "Failed to connect: {error}",
             "auth": "Username/Password is wrong.",
             "connection": "Unable to connect to the server.",
@@ -12,7 +13,12 @@
         "step": {
             "user": {
                 "data": {
-                    "name": "Zone Name",
+                    "name": "Zone Name"
+                },
+                "description": "Configure the watering zone"
+            },
+            "eto": {
+                "data": {
                     "temp_min": "Min Temp",
                     "temp_max": "Max Temp",
                     "humidity_min": "Min Humidity",
@@ -28,7 +34,7 @@
     },
     "options": {
         "step": {
-            "init": {
+            "eto": {
                 "data": {
                     "temp_min": "Min Temp",
                     "temp_max": "Max Temp",

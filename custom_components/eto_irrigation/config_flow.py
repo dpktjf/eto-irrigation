@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 import voluptuous as vol
@@ -18,10 +17,11 @@ from homeassistant.config_entries import (
 
 # https://github.com/home-assistant/core/blob/master/homeassistant/const.py
 from homeassistant.const import CONF_NAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import selector
 
 from .const import (
+    _LOGGER,
     CONF_ALBEDO,
     CONF_HUMIDITY_MAX,
     CONF_HUMIDITY_MIN,
@@ -33,108 +33,143 @@ from .const import (
     DOMAIN,
 )
 
-_LOGGER = logging.getLogger(__name__)
+CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NAME): selector.TextSelector(),
+    }
+)
+
+OPTIONS = vol.Schema(
+    {
+        vol.Required(CONF_TEMP_MIN, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+        vol.Required(CONF_TEMP_MAX, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+        vol.Required(CONF_HUMIDITY_MIN, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+        vol.Required(CONF_HUMIDITY_MAX, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+        vol.Required(CONF_WIND, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+        vol.Required(CONF_SOLAR_RAD, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+        vol.Required(CONF_ALBEDO, default=vol.UNDEFINED): selector.EntitySelector(
+            selector.EntityFilterSelectorConfig(domain=[SENSOR_DOMAIN])
+        ),
+    }
+)
 
 
-class ETOConfigFlow(ConfigFlow, domain=DOMAIN):
+@callback
+def configured_instances(hass: HomeAssistant) -> set[str | None]:
+    """Return a set of configured instances."""
+    entries = [
+        entry.data.get(CONF_NAME) for entry in hass.config_entries.async_entries(DOMAIN)
+    ]
+    return set(entries)
+
+
+class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Config flow for ETO."""
 
     VERSION = CONFIG_FLOW_VERSION
+
+    def __init__(self) -> None:
+        """Init method."""
+        super().__init__()
+        self.config: dict[str, Any] = {}
 
     @staticmethod
     @callback
     def async_get_options_flow(
         config_entry: ConfigEntry,
-    ) -> ETOOptionsFlow:
+    ) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
-        return ETOOptionsFlow(config_entry)
+        return OptionsFlowHandler(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None
     ) -> ConfigFlowResult:
         """Handle initial step."""
-        if user_input is None:
-            entity_selector = selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    domain=[SENSOR_DOMAIN],
-                    multiple=False,
-                ),
-            )
+        if user_input:
+            self.config = user_input
+            if user_input[CONF_NAME] in configured_instances(self.hass):
+                errors = {}
+                errors[CONF_NAME] = "already_configured"
+                return self.async_show_form(
+                    step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
+                )
 
-            return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required(CONF_NAME): str,
-                        vol.Required(CONF_TEMP_MIN): entity_selector,
-                        vol.Required(CONF_TEMP_MAX): entity_selector,
-                        vol.Required(CONF_HUMIDITY_MIN): entity_selector,
-                        vol.Required(CONF_HUMIDITY_MAX): entity_selector,
-                        vol.Required(CONF_WIND): entity_selector,
-                        vol.Required(CONF_SOLAR_RAD): entity_selector,
-                        vol.Required(CONF_ALBEDO): entity_selector,
-                    }
-                ),
-            )
+            return await self.async_step_init()
+        return self.async_show_form(step_id="user", data_schema=CONFIG_SCHEMA)
 
-        await self.async_set_unique_id(user_input[CONF_NAME].lower())
-        self._abort_if_unique_id_configured()
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show basic config for vertical blinds."""
+        if user_input is not None:
+            self.config.update(user_input)
+            return await self.async_step_update()
 
+        return self.async_show_form(
+            step_id="init",
+            data_schema=OPTIONS,
+        )
+
+    async def async_step_update(
+        self,
+        user_input: dict[str, Any] | None = None,  # noqa: ARG002
+    ) -> ConfigFlowResult:
+        """Create entry."""
         return self.async_create_entry(
-            title=user_input[CONF_NAME],
-            data={CONF_NAME: user_input[CONF_NAME]},
-            options={**user_input},
+            title=self.config[CONF_NAME],
+            data={
+                CONF_NAME: self.config[CONF_NAME],
+            },
+            options={
+                CONF_TEMP_MIN: self.config.get(CONF_TEMP_MIN),
+                CONF_TEMP_MAX: self.config.get(CONF_TEMP_MAX),
+                CONF_HUMIDITY_MIN: self.config.get(CONF_HUMIDITY_MIN),
+                CONF_HUMIDITY_MAX: self.config.get(CONF_HUMIDITY_MAX),
+                CONF_WIND: self.config.get(CONF_WIND),
+                CONF_SOLAR_RAD: self.config.get(CONF_SOLAR_RAD),
+                CONF_ALBEDO: self.config.get(CONF_ALBEDO),
+            },
         )
 
 
-class ETOOptionsFlow(OptionsFlow):
+class OptionsFlowHandler(OptionsFlow):
     """Handle options."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
         self.config_entry = config_entry
+        self.current_config: dict = dict(config_entry.data)
+        self.options = dict(config_entry.options)
+        _LOGGER.debug("options=%s", self.options)
 
     async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
+        self,
+        user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Manage the options."""
+        schema = OPTIONS
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-
-        entity_selector = selector.EntitySelector(
-            selector.EntitySelectorConfig(
-                domain=[SENSOR_DOMAIN],
-                multiple=False,
-            ),
-        )
+            self.options.update(user_input)
+            return await self._update_options()
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_TEMP_MIN, default=self.config_entry.options[CONF_TEMP_MIN]
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_TEMP_MAX, default=self.config_entry.options[CONF_TEMP_MAX]
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_HUMIDITY_MIN,
-                        default=self.config_entry.options[CONF_HUMIDITY_MIN],
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_HUMIDITY_MAX,
-                        default=self.config_entry.options[CONF_HUMIDITY_MAX],
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_WIND, default=self.config_entry.options[CONF_WIND]
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_SOLAR_RAD,
-                        default=self.config_entry.options[CONF_SOLAR_RAD],
-                    ): entity_selector,
-                    vol.Required(
-                        CONF_ALBEDO, default=self.config_entry.options[CONF_ALBEDO]
-                    ): entity_selector,
-                }
+            data_schema=self.add_suggested_values_to_schema(
+                schema, user_input or self.options
             ),
         )
+
+    async def _update_options(self) -> ConfigFlowResult:
+        """Update config entry options."""
+        return self.async_create_entry(title="", data=self.options)

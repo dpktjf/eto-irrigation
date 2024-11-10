@@ -1,6 +1,6 @@
 {
   "domain": "eto_irrigation",
-  "name": "ETO Irrigation",
+  "name": "DPK ETO Irrigation",
   "codeowners": [
     "@dpktjf"
   ],
@@ -10,5 +10,5 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/dpktjf/eto-irrigation/issues",
   "requirements": [],
-  "version": "2024.10.1"
+  "version": "2024.11.0"
 }

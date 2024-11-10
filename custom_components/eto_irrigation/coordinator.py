@@ -13,7 +13,7 @@ from .api import (
     ETOApiClientAuthenticationError,
     ETOApiClientError,
 )
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN, _LOGGER
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -37,7 +37,7 @@ class ETODataUpdateCoordinator(DataUpdateCoordinator):
 
         super().__init__(
             hass=hass,
-            logger=LOGGER,
+            logger=_LOGGER,
             name=DOMAIN,
             update_interval=timedelta(minutes=10),
         )
