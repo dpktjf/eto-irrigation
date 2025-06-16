@@ -157,6 +157,21 @@ class ETOApiClient:
         Convert into the correct units for calculation.
         """
         # https://developers.home-assistant.io/docs/core/entity/sensor
+        if self._entities[self._config.options[CONF_TEMP_MIN]] is None:
+            _LOGGER.debug("CONF_TEMP_MIN no data yet")
+        if self._entities[self._config.options[CONF_TEMP_MAX]] is None:
+            _LOGGER.debug("CONF_TEMP_MAX no data yet")
+        if self._entities[self._config.options[CONF_HUMIDITY_MIN]] is None:
+            _LOGGER.debug("CONF_HUMIDITY_MIN no data yet")
+        if self._entities[self._config.options[CONF_HUMIDITY_MAX]] is None:
+            _LOGGER.debug("CONF_HUMIDITY_MAX no data yet")
+        if self._entities[self._config.options[CONF_WIND]] is None:
+            _LOGGER.debug("CONF_WIND no data yet")
+        if self._entities[self._config.options[CONF_SOLAR_RAD]] is None:
+            _LOGGER.debug("CONF_SOLAR_RAD no data yet")
+        if self._entities[self._config.options[CONF_ALBEDO]] is None:
+            _LOGGER.debug("CONF_ALBEDO no data yet")
+
         if (
             self._entities[self._config.options[CONF_TEMP_MIN]] is None
             or self._entities[self._config.options[CONF_TEMP_MAX]] is None
